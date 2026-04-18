@@ -1,0 +1,17 @@
+---
+title: "Page Not Found"
+---
+{{ define "main" }}
+<div style="text-align:center;padding:4rem 1rem">
+  <div style="font-size:6rem;margin-bottom:1rem">📉</div>
+  <h1 style="font-size:2rem;font-weight:800;margin-bottom:.5rem">404 — Not Found</h1>
+  <p style="color:var(--text2);margin-bottom:2rem">
+    That page doesn't exist — maybe the ticker was delisted?
+  </p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+    <a href="/"          class="btn">← Dashboard</a>
+    <a href="/screener"  class="btn btn-ghost">Screener</a>
+    <a href="/gainers"   class="btn btn-ghost">Gainers</a>
+  </div>
+</div>
+{{ end }}

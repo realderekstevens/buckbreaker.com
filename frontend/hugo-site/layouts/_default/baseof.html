@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ if .IsHome }}{{ .Site.Title }} — Free Stock Data & Analysis{{ else }}{{ .Title }} — {{ .Site.Title }}{{ end }}</title>
+  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+
+  {{/* Open Graph */}}
+  <meta property="og:title"       content="{{ .Title }} — {{ .Site.Title }}">
+  <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+  <meta property="og:image"       content="{{ .Site.Params.og_image | absURL }}">
+  <meta property="og:type"        content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+  <meta name="twitter:card"       content="summary_large_image">
+
+  {{/* Canonical */}}
+  <link rel="canonical" href="{{ .Permalink }}">
+
+  {{/* Styles */}}
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+
+  {{/* Inject API config for JS */}}
+  <script>
+    window.YSF_CONFIG = {
+      api:  "{{ .Site.Params.api_base }}",
+      rows: {{ .Site.Params.max_rows }},
+      refreshMs: {{ .Site.Params.refresh_ms }}
+    };
+  </script>
+</head>
+<body>
+<div class="site-wrapper">
+
+  {{/* ── Ticker tape ────────────────────────────────────────────────────── */}}
+  <div class="ticker-tape" id="ticker-tape">
+    <div class="ticker-inner" id="ticker-inner">
+      <span class="ticker-item"><span class="ticker-sym">Loading…</span></span>
+    </div>
+  </div>
+
+  {{/* ── Header ──────────────────────────────────────────────────────────── */}}
+  <header class="site-header">
+    <nav class="nav-inner">
+      <a class="nav-brand" href="/">YourStock<span>Forecast</span></a>
+      <div class="nav-links">
+        <a href="/"          {{ if .IsHome }}class="active"{{ end }}>Dashboard</a>
+        <a href="/screener"  {{ if eq .RelPermalink "/screener/" }}class="active"{{ end }}>Screener</a>
+        <a href="/gainers"   {{ if eq .RelPermalink "/gainers/"  }}class="active"{{ end }}>Gainers</a>
+        <a href="/losers"    {{ if eq .RelPermalink "/losers/"   }}class="active"{{ end }}>Losers</a>
+        <a href="/sectors"   {{ if eq .RelPermalink "/sectors/"  }}class="active"{{ end }}>Sectors</a>
+      </div>
+      <div class="nav-right">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="search-input" placeholder="Search symbol…" autocomplete="off">
+          <div class="search-results hidden" id="search-results"></div>
+        </div>
+        <div id="auth-nav"><!-- populated by api.js --></div>
+      </div>
+    </nav>
+  </header>
+
+  {{/* ── Main content ─────────────────────────────────────────────────────── */}}
+  <main class="main-content">
+    {{ block "main" . }}{{ end }}
+  </main>
+
+  {{/* ── Auth modal ──────────────────────────────────────────────────────── */}}
+  {{ if .Site.Params.show_login }}
+  <div class="modal-overlay hidden" id="auth-modal">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="document.getElementById('auth-modal').classList.add('hidden')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="showTab('login')">Sign In</button>
+        <button class="modal-tab"        onclick="showTab('register')">Register</button>
+      </div>
+
+      {{/* Sign In form */}}
+      <div id="tab-login">
+        <form id="login-form">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+          </div>
+          <p class="form-error" id="login-error"></p>
+          <button type="submit" class="btn" style="width:100%">Sign In</button>
+        </form>
+        <p style="margin-top:1rem;font-size:0.8rem;color:var(--text3);text-align:center">
+          All market data is free to browse without an account.<br>
+          An account lets you save watchlists and set price alerts.
+        </p>
+      </div>
+
+      {{/* Register form */}}
+      <div id="tab-register" style="display:none">
+        <form id="register-form">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Display Name (optional)</label>
+            <input type="text" name="display_name" placeholder="Trader Joe">
+          </div>
+          <div class="form-group">
+            <label>Password (min 8 chars)</label>
+            <input type="password" name="password" placeholder="••••••••" minlength="8" required>
+          </div>
+          <p class="form-error" id="register-error"></p>
+          <button type="submit" class="btn" style="width:100%">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+
+  {{/* ── Footer ──────────────────────────────────────────────────────────── */}}
+  <footer class="site-footer">
+    <div>
+      <strong>YourStockForecast</strong> ·
+      <a href="/about">About</a> ·
+      <a href="/privacy">Privacy</a> ·
+      Data sourced from Finviz via TraderDude dataminer
+    </div>
+    <p class="disclaimer">
+      Data is for informational purposes only and is not investment advice.
+      Stock data may be delayed. Always do your own research before investing.
+    </p>
+  </footer>
+</div>
+
+{{/* Scripts */}}
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+// Tab switcher for auth modal
+function showTab(tab) {
+  document.getElementById('tab-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
+  document.querySelectorAll('.modal-tab').forEach((el, i) =>
+    el.classList.toggle('active', (i === 0) === (tab === 'login'))
+  );
+}
+</script>
+
+{{ block "scripts" . }}{{ end }}
+</body>
+</html>

@@ -1,0 +1,89 @@
+{{ define "main" }}
+
+{{/* ── Article header ──────────────────────────────────────────────────── */}}
+<div class="article-header" style="margin-bottom: 2rem;">
+
+  {{/* Back link to the newspaper date */}}
+  {{ with .Parent }}
+  <a href="{{ .Permalink }}" style="
+    font-size: 0.8rem;
+    opacity: 0.6;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+  ">← {{ .Params.publication | default .Title }}</a>
+  {{ end }}
+
+  <h1 style="
+    font-family: 'Times New Roman', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  ">{{ .Title }}</h1>
+
+  <div style="
+    font-size: 0.8rem;
+    opacity: 0.65;
+    border-top: 1px solid var(--gray-200, #e5e7eb);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  ">
+    {{ with .Params.publication }}<span>📰 {{ . }}</span>{{ end }}
+    <span>🗓 {{ .Date | time.Format "January 2, 2006" }}</span>
+    {{ with .Params.byline }}<span>✍️ {{ . }}</span>{{ end }}
+    {{ with .Params.page }}<span>Page {{ . }}</span>{{ end }}
+    {{ with .Params.section }}<span>{{ . }}</span>{{ end }}
+  </div>
+
+  {{ with .Params.summary }}
+  <p style="
+    font-style: italic;
+    opacity: 0.75;
+    border-left: 3px solid var(--color-link, #4a9eff);
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  ">{{ . }}</p>
+  {{ end }}
+
+</div>
+
+{{/* ── Article body ─────────────────────────────────────────────────────── */}}
+<div class="article-body" style="
+  font-family: 'Times New Roman', serif;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 680px;
+">
+  {{ .Content }}
+</div>
+
+{{/* ── Tags ─────────────────────────────────────────────────────────────── */}}
+{{ with .Params.tags }}
+<div style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.6;">
+  {{ range . }}
+  <a href="{{ "/tags/" | relURL }}{{ . | urlize }}" style="
+    display: inline-block;
+    margin-right: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    text-decoration: none;
+    color: inherit;
+  ">{{ . }}</a>
+  {{ end }}
+</div>
+{{ end }}
+
+{{/* ── Back link ────────────────────────────────────────────────────────── */}}
+{{ with .Parent }}
+<div style="margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--gray-200, #e5e7eb);">
+  <a href="{{ .Permalink }}">← Back to {{ .Date | time.Format "January 2, 2006" }} edition</a>
+</div>
+{{ end }}
+
+{{ end }}

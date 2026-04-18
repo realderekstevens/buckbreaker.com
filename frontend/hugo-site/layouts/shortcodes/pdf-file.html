@@ -1,0 +1,22 @@
+{{- $url := "" -}}
+{{- if .IsNamedParams -}}
+  {{- $url = .Get "url" -}}
+{{- else -}}
+  {{- $url = .Get 0 -}}
+{{- end -}}
+
+{{- if $url -}}
+<div class="pdf-viewer" style="margin:1.5rem 0;">
+  <iframe
+    src="{{ $url }}#toolbar=1&navpanes=0&scrollbar=1&view=FitH"
+    width="100%"
+    style="height:80vh;min-height:500px;border:none;border-radius:4px;"
+    loading="lazy"
+    title="{{ $url }}"
+  >
+    <p>PDF cannot be displayed inline.
+      <a href="{{ $url }}" target="_blank" rel="noopener">Open in new tab ↗</a>
+    </p>
+  </iframe>
+</div>
+{{- end -}}

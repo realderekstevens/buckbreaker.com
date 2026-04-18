@@ -1,0 +1,54 @@
+{{/* 
+  Partial: get-csv.html
+  Fetches a remote CSV and renders a stock table.
+  Usage:
+  {{ partial "get-csv.html" (dict "url" "https://your-csv-url-here" "sep" ",") }}
+*/}}
+
+{{- $url := .url -}}
+{{- $sep := default "," .sep -}}
+
+{{- if not $url -}}
+  <p style="color: red;">[get-csv] Error: No URL provided.</p>
+  {{- return -}}
+{{- end -}}
+
+{{- with resources.GetRemote $url -}}
+  {{- if .Err -}}
+    <p style="color: red;">[get-csv] Failed to fetch CSV from {{ $url }} — {{ .Err }}</p>
+  {{- else -}}
+    {{- $csv := . | transform.Unmarshal (dict "delimiter" $sep) -}}
+
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Dividend</th>
+          <th>Sales</th>
+          <th>High</th>
+          <th>Low</th>
+          <th>2:00pm</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range $i, $row := $csv -}}
+          {{- if gt $i 0 -}}  <!-- Skip header row -->
+            <tr>
+              <td>{{ index $row 0 | default "" }}</td>
+              <td>{{ index $row 1 | default "" }}</td>
+              <td>{{ index $row 2 | default "" }}</td>
+              <td>{{ index $row 3 | default "" }}</td>
+              <td>{{ index $row 4 | default "" }}</td>
+              <td>{{ index $row 5 | default "" }}</td>
+              <td>{{ index $row 6 | default "" }}</td>
+            </tr>
+          {{- end -}}
+        {{- end -}}
+      </tbody>
+    </table>
+
+  {{- end -}}
+{{- else -}}
+  <p style="color: red;">[get-csv] Could not retrieve remote file: {{ $url }}</p>
+{{- end -}}

@@ -1,0 +1,54 @@
+name: patrician3
+description: Patrician III trading game + YourStockForecast companion app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP & API
+  http: ^1.2.0
+  dio: ^5.4.0             # richer HTTP with interceptors (JWT auto-attach)
+
+  # State management
+  provider: ^6.1.2
+
+  # Local storage
+  shared_preferences: ^2.2.2   # JWT token, user prefs
+  flutter_secure_storage: ^9.0.0  # secure JWT on mobile
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # UI helpers
+  shimmer: ^3.0.0          # loading skeleton animations
+  cached_network_image: ^3.3.1
+  intl: ^0.19.0            # number / date formatting
+  url_launcher: ^6.2.5
+
+  # Icons
+  material_design_icons_flutter: ^7.0.7296
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/city_images/
+  fonts:
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700

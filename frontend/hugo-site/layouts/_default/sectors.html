@@ -1,0 +1,61 @@
+{{ define "main" }}
+<h1 style="font-size:1.4rem;font-weight:700;margin-bottom:1.25rem">📊 Sector Performance</h1>
+
+<!-- Sector heatmap cards -->
+<div class="card-grid" id="sector-cards" style="margin-bottom:1.5rem">
+  {{ range seq 8 }}
+  <div class="stat-card skeleton" style="height:100px"></div>
+  {{ end }}
+</div>
+
+<!-- Sector detail table -->
+<div class="panel">
+  <div class="panel-title">All Sectors — Detailed</div>
+  <div class="table-wrap" id="sector-table">
+    <div class="skeleton" style="height:300px;border-radius:6px"></div>
+  </div>
+</div>
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+async function loadSectors() {
+  showRefreshPulse();
+  try {
+    const { data } = await YSF.market.sectorPerformance();
+
+    // Cards
+    if (data && data.length) {
+      document.getElementById('sector-cards').innerHTML = data.slice(0, 12).map(s => {
+        const chg    = parseFloat(s.avg_today || 0);
+        const cls    = chg >= 0 ? 'pos' : 'neg';
+        const border = chg >= 2  ? 'var(--pos)'
+                     : chg <= -2 ? 'var(--neg)'
+                     :             'var(--border)';
+        return `<div class="stat-card" style="border-color:${border}">
+          <div class="stat-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.sector || 'Other'}</div>
+          <div class="stat-value ${cls}">${YSF.fmt.pct(s.avg_today)}</div>
+          <div class="stat-sub">${s.symbol_count || 0} stocks · wk ${YSF.fmt.pct(s.avg_week)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Detail table
+    YSF.renderTable('sector-table', data, [
+      { key: 'sector',       label: 'Sector',      fmt: v => v || 'Unknown' },
+      { key: 'symbol_count', label: 'Stocks',      fmt: v => v ?? '—' },
+      { key: 'avg_today',    label: '% Today',     fmt: YSF.fmt.pct,  pct: true },
+      { key: 'avg_week',     label: '% Week',      fmt: YSF.fmt.pct,  pct: true },
+      { key: 'avg_month',    label: '% Month',     fmt: YSF.fmt.pct,  pct: true },
+    ]);
+
+  } catch(err) {
+    YSF.showError('sector-table', 'Could not load sector data: ' + err.message);
+    YSF.showError('sector-cards', '');
+  }
+}
+
+loadSectors();
+setInterval(loadSectors, window.YSF_CONFIG.refreshMs * 5); // refresh less often
+</script>
+{{ end }}

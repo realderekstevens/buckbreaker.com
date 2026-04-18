@@ -1,0 +1,782 @@
+# stock_names_research.txt
+# ---------------------------------------------------------------
+# These are the shorthand names as printed in The Evening Star,
+# October 28 1929 NYSE table.  Before adding to stock_names.txt,
+# research the full official company name and replace the entry.
+#
+# Format suggestion once researched:
+#   Shorthand printed    -> Full company name to use
+# ---------------------------------------------------------------
+
+Abitibi P A P pf
+Abitibi Power A Pap
+Adams Exp pf
+Adams Mills
+Advance Rumley
+Advance Rumley pf
+Ahumada Lead
+Air Reductn
+Ajax Rubber
+Alaska Juneau
+Albany P W Paper
+Alleg C pf (5%) x w
+Alleg Corp pf
+Alleghany Corp
+Allied C&D pf
+Allied Ch A Dye
+Allis Chalm (n)
+Alpha Port Cemt
+Am A For Power
+Am A For Pw 2d pf
+Am A For Pw pf
+Am Agrlcui Ch pf
+Am Agrlcul Chem
+Am Bank Note
+Am Beet Sugar
+Am Bosch Magneto
+Am Brake Shoe
+Am Brown Bov Eleo
+Am Can
+Am Can pf
+Am Car A F pf
+Am Car A Fdy
+Am Chicle
+Am Com Ale
+Am Encaust Til
+Am European Sec
+Am Hawaiian
+Am Hide &Leather
+Am Hide A Lea pf
+Am Home Prd
+Am Internat
+Am La F & Foamlte
+Am Loco pf
+Am Locomotive
+Am Mach & Fdy
+Am Metal
+Am Metal pf
+Am P A L pf A
+Am P A L pf Ast
+Am Piano
+Am Pow & Lt pf
+Am Pow A Lt
+Am Ra & Std San
+Am Republics
+Am Roll Mill
+Am Safety Raz
+Am Seating
+Am Ship A Com
+Am Sm A Ref
+Am Sm A Ref pf
+Am Snuff
+Am Steel Fdy
+Am Stores
+Am Sugar Rfg
+Am Sugar Rfg pf
+Am Sumatra
+Am Tel A Ca
+Am Tel A Tel
+Am Tobacco
+Am Tobacco B
+Am Tobacco pf
+Am Type Fdry
+Am Water Wks
+Am Woolen
+Am Woolen pf
+Am Writ Paper ctfe
+Am Zinc Ld A Sm
+Am Zinc pf
+Amerada Corp
+American Ice
+Anaconda Copr
+Anaconda W A C
+Anchor Cap
+Andes Copper
+Archer-Dan-M
+Armour 111
+Armour 111 pf
+Armour Del pf
+Arnold Constable
+Asso Appl Ind
+Asso Dry G
+Atch T A SF e
+Atch T A SF pf
+Atl Coast Line
+Atl G A W Indies
+Atl Refining
+Atlas Powder
+Auburn Auto
+Austin Nichols
+Auto-Strop Raz
+Autosales
+Autosales pf
+Aviation Corp Del
+Baldwin Loco
+Baltimore A Ohio
+Bang A Aroos
+Barnet Leather
+Barnsdall
+Bayuk Cigar
+Beacon Oil
+Beatrice Cream
+Beech-Nut Pack
+Beld ing-Hem in way
+Belg Nat R ys pf
+Bendix Aviation
+Best A Company
+Bethlehem St pf
+Bethlehem Steel
+Bklyn Union Gas
+Bklyn-Man pf
+Bklyn-Manhat
+Bloom ingdale Bros
+Bohn Alumn A B
+Booth Fisheries
+Borden CO
+Borg Warner
+Boston A Maine
+Botany Con M
+Briggs A Stratton
+Briggs Mfg
+Brock way M T
+Brooklyn A Queens
+Brown Shoe
+Bruns Ter A Ry
+Bruns-Balk-Col
+Bucyrus Erie
+Bucyrus cv pf
+Budd (E G)
+Bullard Co
+Bur Add Mach
+Burns Bros A
+Burns Bros B
+Bush Term
+Butte A Superior
+Butte Copper A Zinc
+By-Prod Coke
+Byers (A M)
+Calif Packing
+Callahan Zinc A L
+Calumet A Ariz
+Calumet A Hecla
+Campbell Wyant
+Canada Dry G A
+Canadian Pac
+Cannon Mills
+Cap Adminstratn A
+Case (J I)
+Cavanagh-Dobbs
+Celotex
+Cent Aguirre As
+Cent Alloy Steel
+Cent RR of NJ
+Century Rib Mills
+Cerro de Pasco
+Certain-teed Prod
+Certain-teed pf
+Checker Cab Mfg Co
+City Ice A F
+City Stores
+Cluett Peabody
+Coca Cola A
+Coca-Cola
+Col Gas A El
+Col Gas A El pf A
+Collins A Alkman
+Colo A South
+Colo Fuel A 1r0n
+Columb Graph
+Columbian Carb
+Com Credit
+Comm A So
+Comm Credit A
+Comm Invest Trust
+Comm Solvents
+Cong Cigars
+Congoleum-Nalrn
+Consol Cigar
+Consol Film
+Consol Film pf
+Consol Gas
+Consol Gas of
+Consol RR Cub pf
+Consol Textile
+Container Corp A
+Container Corp B
+Conti Baking A
+Conti Baking B
+Conti Baking pf
+Conti Can
+Conti Insurance
+Conti Motors
+Conti Oil of Del
+Corn Prod
+Coty Inc
+Crex Carpet
+Crossley Radio
+Crown Cork A Seal
+Crown Zellerbach
+Crucible Steel
+Cuba Cane Sugar
+Cuba Cane Sugar pf
+Cuba Co
+Cuban-Amer Sugar
+Cudahy Packing
+Curt Wright Corp A
+Curtis Pub
+Curtiss Wright Corp
+Cutler-Ham
+Cuyamel Fruit
+Davison Chem
+Del Lack A W
+Delaware A Hud
+Denv A R G W pf
+Devoe A R ry A
+Dome Mines
+Dominion Strs
+Drug Corpn
+Du Pont de N
+Duluth SS A Atl
+Duluth SS A Atl pf
+Dunhill Inter
+Dupont d N deb
+Durham Hosiery
+East Roll Mill
+Eastman Kodak
+Eaton Axle A S
+Eitingon pf
+Eitingon-Sch
+El Pwr A Lt
+El Pwr A Lt pf
+Elec Auto Lite
+Elec Stor Bat
+Electric Boat
+Emerson-Brnt A
+Endicott-John
+Endicott-John pf
+Eng Pub Sery
+Equitable 81 dg
+Erie R R
+Erie R R Ist pf
+Eureka Vac Cl
+Evans Auto L
+F ilenes
+Fairbanks Morse
+Fash Pk Assoc
+Fed M A S pf
+Fed Motor Tr
+Fed Watr Ser A
+Fid Phen F Ins
+Filene’s Sons
+First Nat Stores
+Fisk Rubber
+Florsheim Shoe A
+Follansbee Bros
+Foster Wheeler
+Foundation Co
+Fox Film A
+Freeport-Texas
+Fuller pr pf
+Gabriel Snub A
+Gamewell Co
+Gardner Motor
+Gen Am Tnk Car
+Gen Asphalt
+Gen Bronze
+Gen Cable
+Gen Cable A
+Gen Cigar
+Gen Elec spec
+Gen Electric
+Gen Gas A El A
+Gen Mills
+Gen Motors
+Gen Motors pf
+Gen Outd Ad vtc
+Gen Outd Adv A
+Gen Public Serv
+Gen Refrac
+Gen Ry Signal
+Gen'l Food Corpn
+Gillette Saf Raz
+Gimbel Bros pf
+Gimbel Brothers
+Glidden Co
+Gobel (Adolf)
+Gold Dust
+Gold Dust pf
+Goodrich B F
+Goodrich pf
+Goodyear 1st pf
+Goodyear Tire
+Gotham Silk H
+Gould Coupler
+Graham-Paige
+Graham-Paige ct
+Granby Copper
+Grand Stores
+Grand Union
+Grand Union pf
+Granite City Stl
+Grant W T
+Greene Can Cop
+Grigsby Grunow
+Grt Nor Ore
+Grt North pf
+Grt North pf ct
+Grt West Sug
+Gulf Mo A N pf
+Gulf Mo A North
+Gulf Sta Steel
+Hahn Dept S pf
+Hahn Dept Stores
+Hartman B
+Hayes Body b B% stk
+Hercules Mot
+Hershey Choc pf
+Hershey Chocolate
+Holland Furn
+Hollander A Son
+Homestake Min
+Hoo(R) A Co
+Houd Hersh B
+Household Fin pf
+Household Prd
+Houston Oil
+Howe Sound
+Hud A Man Ry
+Hudson Motor
+Hupp Motor
+Illinois Central
+Independ Oil A G
+Indian Motor Cycle
+Indian Refining
+Indian Refining ct
+Industrial Rayon
+Ingersoll Rand
+Inland Steel
+Inspiration
+Int Comb Eng pf
+Int Harv
+Int Hydro El A
+Int Match pf
+Int Mer Mar otfs
+Int Mer Marine otfs
+Int Nickel of Can
+Int Nickl of Can
+Int Pa pr&PoA
+Int Pa pr&PoB
+Int Pap
+Int Pap A P A
+Int Pap A Pwr B
+Int Pap A Pwr C
+Int Paper pf
+Int Print Ink
+Int Prtg Ink
+Int Ry CA pf
+Int Rys Cen Am
+Int Shoe
+Int Silver
+Int Tel & Tel
+Int Tel A Teleg
+Int l Rys Cen A
+Int l Salt
+Interboro Rap Tran
+Intercontinental Rub
+Interstate D S
+Interstate Dept St
+Intertype
+Island Creek
+Jewel Tea
+Jewel Tea pf
+Johns-Man pf
+Johns-Manv
+Jones & Lau
+Jordan Motor
+Kan City Sou
+Kaufmann DS
+Kayser J
+Keith-Albee
+Kelly-Spring
+Kelsey Hayes
+Kelvinator Corp
+Kennecott
+Kimberly Clrk
+Kolster Radio
+Kraft Ph Ch
+Kraft Ph Ch pf
+Kresge Dept Stores
+Kresge S S
+Kress (S H) Co
+Kreuger A Toll
+Kroger Gr A Bak
+Lago Oil A Trans
+Lambert
+Lee Rubber & Tire
+Leh Port Cmt
+Leh Val Coal pf
+Lehigh Valley
+Lehigh Valley Coal
+Lehn A Fink
+Liggett A My
+Liggett A My B
+Lima Locomotive
+Link Belt
+Liq Carbonic
+Loew's Inc
+Loew’s Inc pf
+Loft Inc
+Loose-Wiles
+Lorillard (P) Co
+Lorillard (P) pf
+Lou & Nash
+Lou U A El A
+Louisiana Oil
+Ludlum Steel
+Ludlum Stl pf
+Mac A A Forb
+Mack Trucks
+Macy (R H) A Co
+Madison Sq G
+Magma Copper
+Mallinson A Co
+Man Elec Supply
+Man Elev mod
+Man Shirt
+Manati Sugar pf
+Mandel Brothers
+Maracaibo Oil Exp
+Market St Ry pr pf
+Marlin Rock
+Marmon Motor
+Mathieson Alk
+May Dept Stores
+Maytag Co
+Maytag Co pf
+Mc Kes A Rb pf
+Mc Kesson A Rob
+Mc Lellan Strs
+McKeesport T P
+Melville Shoe
+Mengel Co
+Mexican Seaboard
+Miami Copper
+Mid-Continent P
+Middle Sta ctfs
+Middle States Oil
+Middle States Oil ct
+Midland Stl pf
+Minn A St Louis
+Minn Honeywell
+Minn Moline Pwr
+Minn Moline pf
+Missouri Pac pf
+Missouri Pacific
+Mo Kan A Tex pf
+Mo Kan A Texas
+Mohawk Carpet
+Monsanto Ch
+Montgomry Ward
+Moon Motor
+Morrell J
+Mother Lode
+Motion Picture
+Motor Meter G A
+Motor Products
+Motor Wheel
+Mullins Mfg
+Munsingwear
+Murray Corp
+N Y Air Br
+N Y Central
+N Y Chi & St L
+N Y Chi A St L pf
+N Y Dock pf
+N Y N H & Hart
+N Y NH & H pf
+N Y Ont A West
+Nat Enamlg
+Nat Lead
+Nat Lead pf A
+Nat Pow & Lt
+Nat Radiator
+Nat Ry Mex 1st
+Nat Ry Mex 2d
+Nat Supply
+Nat Surety
+Nat Tea
+Nevada Cop
+Nor Am Ed pf
+Nor Germn Lloyd
+Norf & W stn
+Norfolk South
+North Am
+North Am pf
+North Pac ct
+Northern Central
+Northern Pac
+Oil Well Supply
+Oliver Farm Equip
+Olvr Fr Ep cv pt
+Olvr Fr Eq pf A
+Omnibus Corp
+Oppenhm Col
+Otis Elev
+Otis Steel
+Otis Stl pr pf
+Outlet Co
+Owens Ill Glass
+P Rican Am To
+Pac Lighting
+Pac Oil Stubs
+Pac Tel & Tel
+Pacific Gas
+Packard Mot
+Pan-Am Petrolm
+Pan-Amer Pet B
+Panhandle P A R
+Paramount-F-L
+Park & Tilford
+Park Utah
+Pathe Exchange A
+Pathé Exchange
+Patino Mines
+Peerless Motor Car
+Penick A Ford
+Penn C & Coke
+Penn Dixie Cm pf
+Penn Dixie Cment
+Penney (J C)
+Pennsylvania RR
+People’s Gas Chi
+Pere Marquette
+Pet Milk
+Phelps Dodge
+Phil a & Read C A I
+Philip Morris
+Phillips Pet
+Phillips-Jones
+Phoenix Hosiery
+Pierce Arrow pf
+Pierce Oil
+Pierce Oil pf
+Pierce Petrolm
+Pillsbury Fl
+Pirelli Co A
+Pitts & W Va
+Pitts Terminal Coal
+Pittsbgh Screw
+Pittsburgh Coal
+Poor A Co
+Prairie Oil&Gas
+Prairie Pipe L
+Pressed Stl C pf
+Pressed Stl Car
+Proc A Gamble
+Prod A Refiners
+Pub Svc NJ
+Pub Svc NJ pf
+Pub Svc NJ rts
+Pub Svc pf
+Pullman Corp
+Punta Aleg Sugar
+Pure Oil
+Purity Bakeries
+Radio Corp
+Radio pf A
+Radio pf B
+Radio-Keith-Orph A
+Railway A Exp
+Raybestos Manhatn
+Reading
+Reading 2d pf
+Real Silk
+Reis (R) A Co
+Rem ing-R nd 1st
+Rem ing-R nd 2d
+Remington-Rand
+Reo Motors
+Rep Brass A
+Rep Ir A Stl pf
+Repub Ir A Steel
+Reynolds Spring
+Reynolds Tb B
+Rhine West
+Richfield Oil
+Rio Grande Oil
+Ritter Dental
+Rossia Ins
+Royal Dutch
+S.'lvay Am In pf
+Safeway Stores
+Savage Arms
+Schulte Retail Strs
+Seaboard Air Line
+Seagrave
+Sears Roebuck
+Second Nat Inv Corp
+Seneca Copper
+Servel Inc
+Sharon Steel H
+Sharp &Do pf
+Shattuck (F G)
+Shell Union
+Shubert Theater
+Simmons Co
+Simms Pet
+Sinclair Oil
+Sinclair Oil pf
+Skelly Oil
+Sloss Sheffield steel
+Snider Packing
+Snider Packing pf
+So Porto R Sug
+Southern Cal Ed
+Southern Dairies B
+Southern Pacific
+Southern Rwy
+Spang-Chalfant
+Sparks Withngtn
+Spencer Kel g
+Spicer Mfg
+Spicer Mfg pf
+Spiegel-May-St
+St Joseph Lead
+St L-San Fran
+St L-San Fran pf
+St L-Southwest
+Stand Brands
+Stand Com Tob
+Stand G&E pf
+Stand Gas & El
+Stand Inv Corp
+Stand Oil Cal
+Stand Oil N J
+Stand Oil N Y
+Stand Plate Glass
+Stanley Co
+Std P Glass pf
+Std San Mi
+Stewart Warn
+Stone & Webster
+Studebaker
+Submarine Boat
+Sun Oil
+Superior Oil
+Superior Steel
+Sweets of Amer
+Symington A
+Telautograph
+Tenn Cop & Ch
+Tex Gulf Sul
+Texas & Pac
+Texas Corp
+Texas P C & O
+Texas Pac Land Tr
+Thatcher Mfg
+Thatcher pf
+The Fair
+Third Avenue
+Tide Wat Asso pf
+Tide Water Asso
+Timken Roller
+Timkn Det Axle
+Tob Prod ctfs
+Tob Prod ctfs A
+Tobacco Pr A
+Tobacco Prod
+Transcontinental
+Trico Prod
+Truax Traer
+Truscon Stl
+Twin City B p T
+U S &Foreign Secur
+U S Distributing
+U S Freight
+U S Hoffman
+U S Ind Alco
+U S Leather
+U S Leather A
+U S Pipe & Fdry
+U S Realty
+U S Rub 1st pf
+U S Rubber
+U S Smelt Ref
+U S Steel
+U S Steel pf
+U S Tobacco
+Un Oil of Cal
+Un Pacific pf
+Underw-El-Flsh
+Union Bag & Paper
+Union Carbide
+Union Oil
+Union Pac
+Unit'd Cig St. ctf
+United Cigar Strs pf
+United Stores A
+United Stores pf
+Univ Leaf Tob
+Univ Pipe & Rad
+Utd Aircraft & Trans
+Utd Biscuit
+Utd Carbon
+Utd Cigar Stores
+Utd Corp pf
+Utd Corporation
+Utd Electric Coal
+Utd Fruit
+Utd Gas & Imp
+Utd Gas &lm pf
+Utd Paperboard
+Utd Piece Dye
+Util Pwr & Lt A
+Vadsco Sales
+Vadsco Sales pf
+Vanadium
+Vick Chemical
+Virginia-Car 6% pf
+Virginia-Car Chem
+Virginia-Car pf
+Wabash
+Waldorf Syst m
+Walworth
+Ward Baking B
+Warn Br P pf
+Warner Bros Pic
+Warner-Quinlan
+Warren Bros
+Warren Fdry & Pipe
+Webster-Eisenlohr
+Wess O&Sn pf
+Wess Oil & Snow
+West Md 2d pf
+Westark Radio
+Western Maryland
+Western Pac pf
+Western Pacific
+Western Union
+Westn Dairy
+Westngh Air Brk
+Westngh El&M
+Weston El instru
+Westvaco Chlor
+White Eagle Oil
+White Motor
+White Rock Al S
+White Sewing Mach
+Wilcox Oil & Gas
+Wilcox Rich (A)
+Wilcox Rich B
+Willys-Over
+Wilson & Co
+Wilson & Co A
+Wilson & Co pf
+Woolworth
+Worthington Pump
+Wrigley Wm
+Yale & Towne
+Yellow Truck & C
+Young Sheet A T
+Young Spring
+Zenith Radio

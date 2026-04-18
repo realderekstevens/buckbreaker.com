@@ -1,0 +1,129 @@
+{{/* layouts/stocks/single.html — individual stock page */}}
+{{ define "main" }}
+{{/* Symbol comes from the page's .Params.symbol OR from the URL slug */}}
+{{ $sym := upper (or .Params.symbol .File.BaseFileName) }}
+
+<div id="stock-page" data-symbol="{{ $sym }}">
+
+  {{/* Header skeleton — replaced by JS */}}
+  <div class="stock-header" id="stock-header">
+    <span class="stock-symbol">{{ $sym }}</span>
+    <span class="stock-name skeleton" style="width:220px;display:inline-block">&nbsp;</span>
+    <span class="stock-price skeleton" style="width:120px;display:inline-block;margin-left:auto">&nbsp;</span>
+  </div>
+
+  {{/* Key fundamentals */}}
+  <div class="fundamentals-grid" id="fundamentals">
+    {{ range seq 12 }}
+    <div class="fund-item skeleton" style="height:64px"></div>
+    {{ end }}
+  </div>
+
+  {{/* Performance bar */}}
+  <div class="panel" style="margin-bottom:1rem">
+    <div class="panel-title">Performance</div>
+    <div id="perf-table"></div>
+  </div>
+
+  {{/* Price history */}}
+  <div class="panel">
+    <div class="panel-title">Recent Quote History</div>
+    <div class="table-wrap" id="history-table">
+      <div class="skeleton" style="height:200px;border-radius:6px"></div>
+    </div>
+  </div>
+
+</div>
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+(async () => {
+  const sym = document.getElementById('stock-page').dataset.symbol;
+  if (!sym) return;
+
+  try {
+    // Fetch latest snapshot
+    const stock = await YSF.stocks.get(sym);
+    if (!stock) {
+      document.getElementById('stock-header').innerHTML =
+        `<span class="stock-symbol">${sym}</span>
+         <span style="color:var(--text3)">No data found. It may not be in our database yet.</span>`;
+      return;
+    }
+
+    // Render header
+    const chgCls = YSF.fmt.chgClass(stock.performance_today);
+    document.getElementById('stock-header').innerHTML = `
+      <span class="stock-symbol">${sym}</span>
+      <span class="stock-name">${stock.major_index_membership || ''}</span>
+      <span class="stock-price" style="margin-left:auto">${YSF.fmt.price(stock.current_stock_price)}</span>
+      <span class="stock-chg ${chgCls}">${YSF.fmt.pct(stock.performance_today)}</span>
+    `;
+    document.title = `${sym} — ${YSF.fmt.price(stock.current_stock_price)} — YourStockForecast`;
+
+    // Fundamentals grid
+    const funds = [
+      { label: 'Market Cap',    value: YSF.fmt.mcap(stock.market_capitalization) },
+      { label: 'P/E (TTM)',     value: stock.price_to_earnings_ttm ?? '—' },
+      { label: 'Forward P/E',   value: stock.forward_price_to_earnings_next_fiscal_year ?? '—' },
+      { label: 'EPS (TTM)',     value: stock.diluted_earnings_per_share_ttm ?? '—' },
+      { label: 'Revenue',       value: stock.revenue_ttm ?? '—' },
+      { label: 'Gross Margin',  value: YSF.fmt.pct(stock.gross_margin_ttm) },
+      { label: 'Net Margin',    value: YSF.fmt.pct(stock.net_profit_margin_ttm) },
+      { label: 'ROE',           value: YSF.fmt.pct(stock.return_on_equity) },
+      { label: 'Beta',          value: stock.beta ?? '—' },
+      { label: 'Volume',        value: YSF.fmt.vol(stock.volume) },
+      { label: 'Avg Vol (3M)',  value: YSF.fmt.vol(stock.average_volume_3_month) },
+      { label: 'RSI (14)',      value: stock.relative_strength_index_14 ? parseFloat(stock.relative_strength_index_14).toFixed(1) : '—' },
+      { label: '52W High',      value: stock.distance_from_52_week_high ?? '—' },
+      { label: '52W Low',       value: stock.distance_from_52_week_low ?? '—' },
+      { label: 'Analyst Target',value: YSF.fmt.price(stock.analyst_mean_price) },
+      { label: 'Dividend %',    value: YSF.fmt.pct(stock.dividend_yield_annual_percentage) },
+      { label: 'Short Float',   value: stock.short_interest_share ?? '—' },
+      { label: 'Insider Own',   value: stock.insider_ownership ?? '—' },
+    ];
+    document.getElementById('fundamentals').innerHTML = funds.map(f => `
+      <div class="fund-item">
+        <div class="fund-label">${f.label}</div>
+        <div class="fund-value">${f.value}</div>
+      </div>`).join('');
+
+    // Performance bar
+    const perfs = [
+      { label: 'Today',   val: stock.performance_today },
+      { label: 'Week',    val: stock.performance_week },
+      { label: 'Month',   val: stock.performance_month },
+      { label: 'Quarter', val: stock.performance_quarter },
+      { label: 'YTD',     val: stock.performance_year_to_date },
+      { label: '1 Year',  val: stock.performance_year },
+    ];
+    document.getElementById('perf-table').innerHTML = `
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+        ${perfs.map(p => `
+          <div style="text-align:center">
+            <div style="font-size:0.7rem;color:var(--text3)">${p.label}</div>
+            <div class="${YSF.fmt.chgClass(p.val)}" style="font-family:var(--font-mono);font-size:1rem;font-weight:600">
+              ${YSF.fmt.pct(p.val)}
+            </div>
+          </div>`).join('')}
+      </div>`;
+
+    // History table
+    const { data: history } = await YSF.stocks.history(sym, 30);
+    YSF.renderTable('history-table', history, [
+      { key: 'time_recorded',       label: 'Date',    fmt: v => new Date(v).toLocaleDateString() },
+      { key: 'current_stock_price', label: 'Price',   fmt: YSF.fmt.price },
+      { key: 'performance_today',   label: '% Chg',   fmt: YSF.fmt.pct, pct: true },
+      { key: 'volume',              label: 'Volume',  fmt: YSF.fmt.vol },
+      { key: 'relative_volume',     label: 'Rel Vol', fmt: v => v ? parseFloat(v).toFixed(2)+'x' : '—' },
+      { key: 'relative_strength_index_14', label: 'RSI', fmt: v => v ? parseFloat(v).toFixed(1) : '—' },
+    ]);
+
+  } catch(err) {
+    document.getElementById('stock-header').innerHTML +=
+      `<p class="error">Error loading data: ${err.message}</p>`;
+  }
+})();
+</script>
+{{ end }}

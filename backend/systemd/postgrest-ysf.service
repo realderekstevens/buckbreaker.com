@@ -1,0 +1,49 @@
+# /etc/systemd/system/postgrest-ysf.service
+# ─────────────────────────────────────────────────────────────────────────────
+# PostgREST as a managed systemd service for YourStockForecast
+#
+# Install:
+#   sudo cp systemd/postgrest-ysf.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable postgrest-ysf
+#   sudo systemctl start  postgrest-ysf
+#   sudo journalctl -u postgrest-ysf -f
+# ─────────────────────────────────────────────────────────────────────────────
+
+[Unit]
+Description=PostgREST API — YourStockForecast
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+# Path to postgrest binary and config
+ExecStart=/usr/local/bin/postgrest /opt/YourStockForecast/hugo_site/../postgrest.conf
+
+# Graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=10
+
+# Auto-restart on crash (but not too fast)
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=5
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/YourStockForecast /var/log
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=postgrest-ysf
+
+[Install]
+WantedBy=multi-user.target

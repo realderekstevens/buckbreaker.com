@@ -1,0 +1,23 @@
+<div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="{{ "svg/menu.svg" | relURL }}" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>{{ partial "docs/title" . }}</strong>
+
+  <label for="toc-control">
+    {{ if default true (default .Site.Params.BookToC .Params.BookToC) }}
+    <img src="{{ "svg/toc.svg" | relURL }}" class="book-icon" alt="Table of Contents" />
+    {{ end }}
+  </label>
+</div>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9DDL9X80G8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-9DDL9X80G8');
+</script>

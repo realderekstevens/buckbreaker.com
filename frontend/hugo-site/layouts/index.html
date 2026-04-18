@@ -1,0 +1,141 @@
+{{ define "main" }}
+<!-- Dashboard: market overview + top gainers/losers + most active -->
+
+<section style="margin-bottom:2rem">
+  <div class="card-grid" id="market-stats">
+    <div class="stat-card skeleton" style="height:88px"></div>
+    <div class="stat-card skeleton" style="height:88px"></div>
+    <div class="stat-card skeleton" style="height:88px"></div>
+    <div class="stat-card skeleton" style="height:88px"></div>
+  </div>
+</section>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+
+  <!-- Top Gainers -->
+  <div class="panel">
+    <div class="panel-title">🟢 Top Gainers</div>
+    <div class="table-wrap" id="gainers-table">
+      <div class="skeleton" style="height:200px;border-radius:6px"></div>
+    </div>
+  </div>
+
+  <!-- Top Losers -->
+  <div class="panel">
+    <div class="panel-title">🔴 Top Losers</div>
+    <div class="table-wrap" id="losers-table">
+      <div class="skeleton" style="height:200px;border-radius:6px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Most Active -->
+<div class="panel" style="margin-bottom:1.25rem">
+  <div class="panel-title">⚡ Most Active by Volume</div>
+  <div class="table-wrap" id="active-table">
+    <div class="skeleton" style="height:200px;border-radius:6px"></div>
+  </div>
+</div>
+
+<!-- Latest data timestamp -->
+<p style="font-size:0.75rem;color:var(--text3);text-align:right" id="data-ts"></p>
+
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+const COLS_MOVER = [
+  { key: 'symbol',            label: 'Symbol',   fmt: v => v },
+  { key: 'current_stock_price', label: 'Price',  fmt: YSF.fmt.price },
+  { key: 'performance_today', label: '% Today',  fmt: YSF.fmt.pct,  pct: true },
+  { key: 'volume',            label: 'Volume',   fmt: YSF.fmt.vol   },
+  { key: 'market_capitalization', label: 'Mkt Cap', fmt: YSF.fmt.mcap },
+];
+
+const COLS_ACTIVE = [
+  { key: 'symbol',              label: 'Symbol',   fmt: v => v },
+  { key: 'current_stock_price', label: 'Price',    fmt: YSF.fmt.price },
+  { key: 'performance_today',   label: '% Today',  fmt: YSF.fmt.pct, pct: true },
+  { key: 'volume',              label: 'Volume',   fmt: YSF.fmt.vol   },
+  { key: 'relative_volume',     label: 'Rel Vol',  fmt: v => v ? parseFloat(v).toFixed(2)+'x' : '—' },
+];
+
+async function loadDashboard() {
+  try {
+    // Gainers
+    const { data: g } = await YSF.stocks.gainers(15);
+    YSF.renderTable('gainers-table', g, COLS_MOVER);
+
+    // Losers
+    const { data: l } = await YSF.stocks.losers(15);
+    YSF.renderTable('losers-table', l, COLS_MOVER);
+
+    // Most active
+    const { data: a } = await YSF.market.mostActive(20);
+    YSF.renderTable('active-table', a, COLS_ACTIVE);
+
+    // Market stats summary
+    if (g.length) {
+      const advancers = g.filter(r => parseFloat(r.performance_today) > 0).length;
+      document.getElementById('market-stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Gainers Loaded</div>
+          <div class="stat-value pos">${g.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Losers Loaded</div>
+          <div class="stat-value neg">${l.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Top Gainer Today</div>
+          <div class="stat-value pos">${YSF.fmt.pct(g[0]?.performance_today)}</div>
+          <div class="stat-sub">${g[0]?.symbol}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Most Active Vol</div>
+          <div class="stat-value">${YSF.fmt.vol(a[0]?.volume)}</div>
+          <div class="stat-sub">${a[0]?.symbol}</div>
+        </div>
+      `;
+    }
+
+    // Timestamp
+    const ts = g[0]?.time_recorded;
+    if (ts) {
+      document.getElementById('data-ts').textContent =
+        'Data as of: ' + new Date(ts).toLocaleString();
+    }
+
+  } catch(err) {
+    ['gainers-table','losers-table','active-table'].forEach(id =>
+      YSF.showError(id, 'Failed to load: ' + err.message)
+    );
+  }
+}
+
+// Ticker tape
+async function loadTickerTape() {
+  try {
+    const { data } = await YSF.stocks.gainers(20);
+    const inner = document.getElementById('ticker-inner');
+    if (!data.length || !inner) return;
+    const items = [...data, ...data].map(r => {
+      const chg = parseFloat(r.performance_today);
+      const cls = chg >= 0 ? 'pos' : 'neg';
+      return `<span class="ticker-item">
+        <span class="ticker-sym">${r.symbol}</span>
+        <span class="ticker-px">${YSF.fmt.price(r.current_stock_price)}</span>
+        <span class="${cls}">${YSF.fmt.pct(r.performance_today)}</span>
+      </span>`;
+    }).join('');
+    inner.innerHTML = items;
+  } catch { /* silent */ }
+}
+
+loadDashboard();
+loadTickerTape();
+
+// Auto-refresh every minute
+setInterval(loadDashboard, window.YSF_CONFIG.refreshMs);
+</script>
+{{ end }}

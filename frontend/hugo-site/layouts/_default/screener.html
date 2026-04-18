@@ -1,0 +1,160 @@
+{{/* layouts/_default/screener.html */}}
+{{ define "main" }}
+<h1 style="font-size:1.4rem;font-weight:700;margin-bottom:1.25rem">📊 Stock Screener</h1>
+
+<!-- Filter bar -->
+<div class="panel" style="margin-bottom:1.25rem">
+  <div class="screener-filters">
+
+    <div class="filter-group">
+      <label>Market Cap</label>
+      <select id="f-mcap">
+        <option value="">Any</option>
+        <option value="gte.1000000000000">Mega Cap (>$1T)</option>
+        <option value="gte.10000000000">Large Cap (>$10B)</option>
+        <option value="gte.2000000000">Mid Cap (>$2B)</option>
+        <option value="gte.300000000">Small Cap (>$300M)</option>
+        <option value="lt.300000000">Micro Cap (<$300M)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>P/E Ratio</label>
+      <select id="f-pe">
+        <option value="">Any</option>
+        <option value="lte.10">Low (<10)</option>
+        <option value="lte.20">Moderate (<20)</option>
+        <option value="lte.30">Normal (<30)</option>
+        <option value="gte.30">High (>30)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>RSI (14)</label>
+      <select id="f-rsi">
+        <option value="">Any</option>
+        <option value="lte.30">Oversold (<30)</option>
+        <option value="gte.70">Overbought (>70)</option>
+        <option value="gte.50">Bullish (>50)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Performance Today</label>
+      <select id="f-perf">
+        <option value="">Any</option>
+        <option value="gte.0">Positive</option>
+        <option value="gte.3">Up 3%+</option>
+        <option value="gte.5">Up 5%+</option>
+        <option value="gte.10">Up 10%+</option>
+        <option value="lte.0">Negative</option>
+        <option value="lte.-5">Down 5%+</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Dividend Yield</label>
+      <select id="f-div">
+        <option value="">Any</option>
+        <option value="gte.1">Pays dividend</option>
+        <option value="gte.3">High yield (>3%)</option>
+        <option value="gte.5">Very high (>5%)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Min Volume</label>
+      <input type="number" id="f-vol" placeholder="e.g. 1000000" step="100000">
+    </div>
+
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="f-sort">
+        <option value="market_capitalization.desc">Market Cap ↓</option>
+        <option value="performance_today.desc">% Today ↓</option>
+        <option value="performance_today.asc">% Today ↑</option>
+        <option value="volume.desc">Volume ↓</option>
+        <option value="price_to_earnings_ttm.asc">P/E ↑</option>
+        <option value="relative_strength_index_14.asc">RSI ↑</option>
+        <option value="dividend_yield_annual_percentage.desc">Dividend ↓</option>
+      </select>
+    </div>
+
+    <div class="filter-group" style="justify-content:flex-end">
+      <label>&nbsp;</label>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn" onclick="runScreener()">Run Screen</button>
+        <button class="btn btn-ghost" onclick="resetScreener()">Reset</button>
+      </div>
+    </div>
+  </div>
+  <p id="result-count" style="font-size:0.8rem;color:var(--text3)"></p>
+</div>
+
+<!-- Results -->
+<div class="panel">
+  <div class="table-wrap" id="screener-results">
+    <p class="no-data">Set filters above and click Run Screen.</p>
+  </div>
+</div>
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+const COLS = [
+  { key: 'symbol',                      label: 'Symbol',    fmt: v => v },
+  { key: 'current_stock_price',         label: 'Price',     fmt: YSF.fmt.price },
+  { key: 'performance_today',           label: '% Today',   fmt: YSF.fmt.pct, pct: true },
+  { key: 'market_capitalization',       label: 'Mkt Cap',   fmt: v => v ? '$'+parseFloat(v/1e9).toFixed(1)+'B' : '—' },
+  { key: 'price_to_earnings_ttm',       label: 'P/E',       fmt: v => v ? parseFloat(v).toFixed(1) : '—' },
+  { key: 'dividend_yield_annual_percentage', label: 'Div%', fmt: YSF.fmt.pct },
+  { key: 'relative_strength_index_14', label: 'RSI',        fmt: v => v ? parseFloat(v).toFixed(1) : '—' },
+  { key: 'volume',                      label: 'Volume',    fmt: YSF.fmt.vol },
+  { key: 'gross_margin_ttm',            label: 'Gross Mgn', fmt: YSF.fmt.pct },
+  { key: 'return_on_equity',            label: 'ROE',       fmt: YSF.fmt.pct },
+];
+
+async function runScreener() {
+  const filters = {};
+  const mcap = document.getElementById('f-mcap').value;
+  const pe   = document.getElementById('f-pe').value;
+  const rsi  = document.getElementById('f-rsi').value;
+  const perf = document.getElementById('f-perf').value;
+  const div  = document.getElementById('f-div').value;
+  const vol  = document.getElementById('f-vol').value;
+  const sort = document.getElementById('f-sort').value;
+
+  if (mcap) filters['market_capitalization'] = mcap;
+  if (pe)   filters['price_to_earnings_ttm'] = pe;
+  if (rsi)  filters['relative_strength_index_14'] = rsi;
+  if (perf) filters['performance_today'] = perf;
+  if (div)  filters['dividend_yield_annual_percentage'] = div;
+  if (vol)  filters['volume'] = `gte.${vol}`;
+
+  // Only show rows with a price
+  filters['current_stock_price'] = 'not.is.null';
+
+  YSF.setLoading('screener-results', true);
+  document.getElementById('result-count').textContent = 'Searching…';
+  try {
+    const { data, total } = await YSF.stocks.screen(filters, sort, 200);
+    YSF.renderTable('screener-results', data, COLS);
+    document.getElementById('result-count').textContent =
+      `${data.length} results${total ? ' of ' + total : ''}`;
+  } catch(err) {
+    YSF.showError('screener-results', err.message);
+  }
+  YSF.setLoading('screener-results', false);
+}
+
+function resetScreener() {
+  ['f-mcap','f-pe','f-rsi','f-perf','f-div','f-sort'].forEach(id =>
+    document.getElementById(id).selectedIndex = 0
+  );
+  document.getElementById('f-vol').value = '';
+  document.getElementById('result-count').textContent = '';
+  document.getElementById('screener-results').innerHTML =
+    '<p class="no-data">Set filters above and click Run Screen.</p>';
+}
+</script>
+{{ end }}

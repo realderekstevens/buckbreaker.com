@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yourstockforecast.com/sitemap.xml
+
+# Disallow API proxy paths (just in case)
+Disallow: /rpc/
