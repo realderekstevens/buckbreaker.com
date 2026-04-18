@@ -4,7 +4,6 @@
 A full-stack open-source platform combining 1929-era newspaper transcriptions, daily Finviz fundamentals, PostgreSQL + PostgREST API, a Hugo static website, and a Flutter mobile app.
 
 ### ✨ Features
-- **Daily Finviz Scraper** — 73 fundamental metrics for 4,720+ active tickers (overnight cron-friendly)
 - **1929 Crash Transcription** — 100+ digitized newspaper pages with searchable daily quotes
 - **PostgREST REST API** — instant JSON endpoints for Hugo/Flutter (no custom backend code)
 - **Beautiful TUI CLI** (`app.sh`) — manage everything from one terminal
