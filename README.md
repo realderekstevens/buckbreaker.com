@@ -23,10 +23,7 @@ cd YourStockForecast
 # 2. Copy environment
 cp .env.example .env
 
-# 3. Start the full stack with Docker (recommended)
-docker compose up -d postgres postgrest
-
-# 4. Run the CLI
+# 3. Run the CLI
 cd backend/cli
 chmod +x app.sh
 ./app.sh
