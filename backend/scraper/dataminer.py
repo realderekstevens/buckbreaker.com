@@ -244,24 +244,35 @@ def clean_numeric(val: str):
 
 def get_value(soup: BeautifulSoup, label_text: str) -> str | None:
     """
-    Find the <td> whose text matches label_text (case-insensitive, partial),
-    then return the text of the immediately following sibling <td>.
-    This is label-driven — immune to positional HTML changes.
+    Find the label <td> whose visible text matches label_text, then return
+    the text of the immediately following sibling <td>.
+
+    BeautifulSoup's string= parameter only matches tags that have a *single
+    bare text node* as their only child.  Finviz wraps some labels in <b> or
+    <small> tags, which breaks string= matching entirely.  Using get_text()
+    on each <td> instead handles all markup variants correctly.
     """
-    td = soup.find(
-        "td",
-        string=lambda t: t and label_text.lower() in t.lower()
-    )
-    if td:
-        value_td = td.find_next_sibling("td")
-        if value_td:
-            return value_td.get_text(strip=True) or None
+    for td in soup.find_all("td"):
+        if label_text.lower() in td.get_text(strip=True).lower():
+            value_td = td.find_next_sibling("td")
+            if value_td:
+                return value_td.get_text(strip=True) or None
     return None
 
 
 def is_block_page(soup: BeautifulSoup) -> bool:
-    """Return True if Finviz returned a rate-limit/error page instead of real data."""
-    return not soup.find(string=lambda t: t and "Snapshot" in t)
+    """Return True if Finviz returned a rate-limit/error page instead of real data.
+
+    The old approach searched for the *text* "Snapshot" via BeautifulSoup's
+    string= parameter, which only matches bare text nodes.  If Finviz wraps
+    any surrounding text in a <b> or <span>, or changes page copy, the check
+    silently breaks and flags every valid page as blocked.
+
+    The correct approach is to look for the actual snapshot data table by its
+    CSS class name — that table is present on every valid quote page and absent
+    on every block/error page, regardless of copy or markup changes.
+    """
+    return soup.find("table", class_="snapshot-table2") is None
 
 
 def scrape_ticker(ticker: str) -> dict | None:
