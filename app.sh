@@ -168,6 +168,10 @@ ACTIVE_TICKERS_FILE="${SCRIPT_DIR}/backend/scraper/active_tickers.txt"
 DATAMINER_LOG="${SCRIPT_DIR}/backend/logs/dataminer.log"
 DATAMINER_PROGRESS="${SCRIPT_DIR}/backend/scraper/.dataminer_progress"
 
+
+# ── Graham valuation script path ──────────────────────────────────────────────
+GRAHAM_PY="${SCRIPT_DIR}/backend/scraper/graham_valuation.py"
+
 # Ensure the stock names file exists
 _ensure_stock_names_file() {
     if [[ ! -f "$STOCK_NAMES_FILE" ]]; then
@@ -717,12 +721,705 @@ insert_custom_newspaper_quote() {
 #############
 # Main Menu #
 #############
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §B  finviz_explorer_menu()  —  Deep Metric Browser for stock_quote
+# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# §B  finviz_explorer_menu()  —  Deep Metric Browser for stock_quote
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Lets the user pick ANY numeric metric and instantly see the top / bottom 50
+# stocks for it, alongside key context columns.  All data comes from the
+# DISTINCT-ON latest-row-per-ticker view of stock_quote.
+#
+# Metric categories match the Finviz sidebar layout:
+#   Movers · Valuation · Fundamentals · Technical · Dividend · Ownership
+#
+# A secondary "View Full Row" picker lets users drill into a single ticker.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Internal: run a top-N query for one numeric column ───────────────────────
+# Usage: _fv_top_n  DB_COLUMN  "Display Label"  [ASC|DESC]  [limit]
+_fv_top_n() {
+    local col="$1" label="$2" dir="${3:-DESC}" lim="${4:-50}"
+    psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+         --pset="border=2" --pset="linestyle=unicode" \
+         -c "
+        SELECT
+            sub.symbol,
+            ROUND(sub.current_stock_price::NUMERIC, 2)   AS price,
+            sub.market_capitalization                     AS mkt_cap,
+            sub.price_to_earnings_ttm                     AS pe,
+            sub.${col}                                    AS \"${label}\"
+        FROM (
+            SELECT DISTINCT ON (symbol)
+                symbol,
+                current_stock_price,
+                market_capitalization,
+                price_to_earnings_ttm,
+                ${col}
+            FROM stock_quote
+            ORDER BY symbol, time_recorded DESC
+        ) sub
+        WHERE sub.${col} IS NOT NULL
+        ORDER BY sub.${col} ${dir} NULLS LAST
+        LIMIT ${lim};
+    " 2>&1 | head -80
+}
+
+# ── Internal: sort text-pct performance columns (stored as '5.43%') ──────────
+_fv_top_pct() {
+    local col="$1" label="$2" dir="${3:-DESC}" lim="${4:-50}"
+    psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+         --pset="border=2" --pset="linestyle=unicode" \
+         -c "
+        SELECT
+            sub.symbol,
+            ROUND(sub.current_stock_price::NUMERIC, 2)   AS price,
+            sub.market_capitalization                     AS mkt_cap,
+            sub.${col}                                    AS \"${label}\"
+        FROM (
+            SELECT DISTINCT ON (symbol)
+                symbol,
+                current_stock_price,
+                market_capitalization,
+                ${col}
+            FROM stock_quote
+            ORDER BY symbol, time_recorded DESC
+        ) sub
+        WHERE sub.${col} IS NOT NULL
+          AND sub.${col} ~ '^-?[0-9]+\.?[0-9]*%?$'
+        ORDER BY
+            REPLACE(sub.${col}, '%', '')::NUMERIC ${dir} NULLS LAST
+        LIMIT ${lim};
+    " 2>&1 | head -80
+}
+
+# ── Internal: view all columns for one ticker (latest row) ───────────────────
+_fv_drill_ticker() {
+    local sym="$1"
+    psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+         --pset="format=wrapped" --pset="columns=100" \
+         -c "
+        SELECT *
+        FROM stock_quote
+        WHERE symbol = '${sym}'
+        ORDER BY time_recorded DESC
+        LIMIT 1;
+    " 2>&1
+}
+
+finviz_explorer_menu() {
+    push_breadcrumb "📊 Market Explorer"
+
+    # ── All available metric options ──────────────────────────────────────────
+    # Format: "Display Name|db_column|ASC_or_DESC|type"
+    # type: N = numeric column, P = text-percent column
+    local -a METRICS=(
+        # ── MOVERS ──────────────────────────────────────────────────────────
+        "Top Gainers Today          |performance_today|DESC|P"
+        "Top Losers Today           |performance_today|ASC|P"
+        "Top Gainers This Week      |performance_week|DESC|P"
+        "Top Losers This Week       |performance_week|ASC|P"
+        "Top Gainers This Month     |performance_month|DESC|P"
+        "Top Gainers This Quarter   |performance_quarter|DESC|P"
+        "Top Gainers Half Year      |performance_half_year|DESC|P"
+        "Top Gainers This Year      |performance_year|DESC|P"
+        "Top Gainers YTD            |performance_year_to_date|DESC|P"
+        # ── VOLUME / MOMENTUM ───────────────────────────────────────────────
+        "Highest Volume             |volume|DESC|N"
+        "Highest Relative Volume    |relative_volume|DESC|N"
+        "Highest Avg Volume (3mo)   |average_volume_3_month|DESC|N"
+        "Highest RSI (Overbought)   |relative_strength_index_14|DESC|N"
+        "Lowest RSI  (Oversold)     |relative_strength_index_14|ASC|N"
+        "Highest ATR (Volatility)   |average_true_range_14|DESC|N"
+        "Highest Beta               |beta|DESC|N"
+        "Lowest Beta                |beta|ASC|N"
+        # ── VALUATION ───────────────────────────────────────────────────────
+        "Lowest P/E Ratio           |price_to_earnings_ttm|ASC|N"
+        "Highest P/E Ratio          |price_to_earnings_ttm|DESC|N"
+        "Lowest PEG Ratio           |price_to_earnings_to_growth|ASC|N"
+        "Lowest P/B Ratio           |price_to_book_mrq|ASC|N"
+        "Lowest P/S Ratio           |price_to_sales_ttm|ASC|N"
+        "Lowest P/FCF               |price_to_free_cash_flow_ttm|ASC|N"
+        "Lowest P/Cash              |price_to_cash_per_share_mrq|ASC|N"
+        "Highest Forward P/E        |forward_price_to_earnings_next_fiscal_year|DESC|N"
+        "Lowest Forward P/E         |forward_price_to_earnings_next_fiscal_year|ASC|N"
+        # ── EPS / EARNINGS ──────────────────────────────────────────────────
+        "Highest EPS (TTM)          |diluted_earnings_per_share_ttm|DESC|N"
+        "Highest EPS Estimate Next Y|earnings_per_share_estimate_next_year|DESC|N"
+        "Highest EPS Est Next Qtr   |earnings_per_share_estimate_for_next_quarter|DESC|N"
+        # ── FUNDAMENTALS ────────────────────────────────────────────────────
+        "Highest Return on Equity   |return_on_equity|DESC|N"
+        "Highest Return on Assets   |return_on_assets_ttm|DESC|N"
+        "Highest Return on Invest.  |return_on_investment_ttm|DESC|N"
+        "Highest Gross Margin       |gross_margin_ttm|DESC|N"
+        "Highest Operating Margin   |operating_margin_ttm|DESC|N"
+        "Highest Net Profit Margin  |net_profit_margin_ttm|DESC|N"
+        # ── BALANCE SHEET ───────────────────────────────────────────────────
+        "Highest Book Value/Share   |book_value_per_share_mrq|DESC|N"
+        "Highest Cash/Share         |cash_per_share_mrq|DESC|N"
+        "Lowest Debt/Equity         |total_debt_to_equity_mrq|ASC|N"
+        "Lowest LT Debt/Equity      |long_term_debt_to_equity_mrq|ASC|N"
+        "Highest Quick Ratio        |quick_ratio_mrq|DESC|N"
+        # ── PRICE / TARGET ──────────────────────────────────────────────────
+        "Highest Price              |current_stock_price|DESC|N"
+        "Lowest Price               |current_stock_price|ASC|N"
+        "Largest Upside to Target   |analyst_mean_price|DESC|N"
+        "Best Analyst Rating        |analyst_mean_recommendation_1_buy_5_sell|ASC|N"
+        # ── DIVIDEND ────────────────────────────────────────────────────────
+        "Highest Dividend Yield     |dividend_yield_annual_percentage|DESC|N"
+        "Highest Dividend Payout    |dividend_payout_ratio_ttm|DESC|N"
+        # ── SHORT INTEREST ──────────────────────────────────────────────────
+        "Highest Short Ratio        |short_interest_ratio|DESC|N"
+        # ── OWNERSHIP ───────────────────────────────────────────────────────
+        "Highest Insider Ownership  |insider_ownership|DESC|P"
+        "Highest Institutional Own  |institutional_ownership|DESC|P"
+        "Biggest Insider Buy (6mo)  |insider_transactions_6_month_change_in_insider_ownership|DESC|P"
+        # ── SIZE ────────────────────────────────────────────────────────────
+        "Most Employees             |full_time_employees|DESC|N"
+    )
+
+    while true; do
+        clear
+        section_header "📊 Market Explorer  —  Top 50 by any Finviz Metric"
+
+        gum style --foreground 244 \
+            "Pick a metric → see top 50 stocks, all key columns displayed." \
+            "Fuzzy search works: type 'volume', 'margin', 'RSI', etc."
+        echo
+
+        # Build display list for gum filter
+        local display_list
+        display_list=$(printf '%s\n' "${METRICS[@]}" | \
+                       awk -F'|' '{printf "%-44s  (%s)\n", $1, $3}')
+        display_list+=$'\n'"── Controls ──"$'\n'"🔙 Back"
+
+        local chosen_line
+        chosen_line=$(echo "$display_list" | \
+                      gum filter \
+                          --placeholder "Search metrics…  (e.g. 'volume', 'margin', 'RSI')" \
+                          --height 20 \
+                          --no-strict)
+
+        [[ -z "$chosen_line" || "$chosen_line" == "🔙 Back" || "$chosen_line" == "── Controls ──" ]] && {
+            pop_breadcrumb
+            CURRENT_MENU="finviz"
+            return
+        }
+
+        # Find the matching METRICS entry
+        local matched=""
+        for entry in "${METRICS[@]}"; do
+            local m_label; m_label=$(echo "$entry" | cut -d'|' -f1 | xargs)
+            if [[ "$chosen_line" == *"$m_label"* ]]; then
+                matched="$entry"
+                break
+            fi
+        done
+
+        if [[ -z "$matched" ]]; then
+            warn "Could not match selection — try again."
+            pause; continue
+        fi
+
+        IFS='|' read -r m_label m_col m_dir m_type <<< "$matched"
+        m_label=$(echo "$m_label" | xargs)  # trim whitespace
+
+        # ── Ask: top N ────────────────────────────────────────────────────────
+        local top_n
+        top_n=$(gum choose "Top 25" "Top 50" "Top 100" "Top 200" "Back") || continue
+        [[ "$top_n" == "Back" ]] && continue
+        top_n="${top_n//[^0-9]/}"   # strip "Top "
+
+        clear
+        section_header "📊 ${m_label}  —  ${m_dir}  (top ${top_n})"
+        echo
+
+        # Run the appropriate query
+        if [[ "$m_type" == "P" ]]; then
+            _fv_top_pct "$m_col" "$m_label" "$m_dir" "$top_n"
+        else
+            _fv_top_n   "$m_col" "$m_label" "$m_dir" "$top_n"
+        fi
+
+        echo
+        gum style --foreground 244 "─── Column: ${m_col} ───"
+        echo
+
+        # ── Offer drill-down to a single ticker ───────────────────────────────
+        local do_drill
+        do_drill=$(gum choose \
+            "🔍 View all columns for one ticker" \
+            "📋 Run another metric" \
+            "🔙 Back to Explorer") || continue
+
+        case "$do_drill" in
+            "🔍 View all columns for one ticker")
+                local sym
+                sym=$(gum input \
+                    --placeholder "Ticker symbol  e.g. AAPL" \
+                    --width 20 | tr '[:lower:]' '[:upper:]' | xargs)
+                if [[ -n "$sym" ]]; then
+                    clear
+                    section_header "📋 Full Row — $sym"
+                    echo
+                    _fv_drill_ticker "$sym"
+                    echo
+                    pause
+                fi
+                ;;
+            "🔙 Back to Explorer")
+                pop_breadcrumb
+                CURRENT_MENU="finviz"
+                return
+                ;;
+        esac
+
+    done
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §C  graham_menu()  —  Benjamin Graham Defensive Investor Valuation
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Provides a complete UI for the Graham valuation workflow:
+#   • Run computation (calls graham_valuation.py → writes graham_valuation table)
+#   • Browse results by grade / margin of safety
+#   • View combined Graham + Finviz data for any ticker
+#   • Filter top 50 / 100 with all Finviz columns alongside Graham metrics
+#   • Export results to CSV
+#   • Create/refresh DB objects (table + view)
+#   • Explain the formulas
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Internal: run a psql query against graham_defensive_screen ────────────────
+# Usage: _gv_query  "extra WHERE clause"  "ORDER BY clause"  limit
+_gv_query() {
+    local where="${1:-}" order="${2:-grade ASC, margin_of_safety_pct DESC NULLS LAST}" lim="${3:-50}"
+    psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+         --pset="border=2" --pset="linestyle=unicode" \
+         -c "
+        SELECT
+            symbol,
+            grade,
+            ROUND(graham_number::NUMERIC, 2)           AS gn,
+            ROUND(price::NUMERIC, 2)                   AS price,
+            ROUND(margin_of_safety_pct::NUMERIC, 1)    AS \"mos_%\",
+            ROUND(price_to_graham_ratio::NUMERIC, 3)   AS p_gn,
+            ROUND(eps_ttm::NUMERIC, 2)                 AS eps,
+            ROUND(book_value_ps::NUMERIC, 2)           AS bvps,
+            mkt_cap,
+            pe_ratio                                   AS pe,
+            ROUND(roe_pct::NUMERIC, 1)                 AS roe,
+            chg_today,
+            chg_ytd
+        FROM graham_defensive_screen
+        WHERE graham_number IS NOT NULL
+          ${where}
+        ORDER BY ${order}
+        LIMIT ${lim};
+    " 2>&1 | head -120
+}
+
+graham_menu() {
+    push_breadcrumb "🧮 Graham Valuation"
+
+    # ── Check whether graham_valuation.py is present ─────────────────────────
+    local py_ok="❌ not found"
+    [[ -f "$GRAHAM_PY" ]] && py_ok="✅ found"
+
+    # ── Last computation time from DB ─────────────────────────────────────────
+    local last_run
+    last_run=$(psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                   --tuples-only \
+                   -c "SELECT MAX(time_computed) FROM graham_valuation;" \
+                   2>/dev/null | tr -d ' ' | grep -v '^$' || echo "never")
+
+    while true; do
+        clear
+        section_header "🧮 Graham Valuation  │  Script: ${py_ok}  │  Last run: ${last_run}"
+
+        gum style --foreground 244 \
+            "Benjamin Graham — 'The Intelligent Investor' (1949)" \
+            "Graham Number = √(22.5 × EPS_TTM × Book_Value_Per_Share)" \
+            "Grade A = price ≤ 50% of GN  (>50% margin of safety)"
+        echo
+
+        local choice
+        choice=$(gum choose \
+            "── Compute ──" \
+            "▶  Compute Graham Numbers  (all tickers in stock_quote)" \
+            "▶  Compute for specific tickers" \
+            "▶  Set AAA Bond Yield & Recompute" \
+            "── Browse Results ──" \
+            "🏆 Top 50 Undervalued  (best Grade A/B stocks)" \
+            "🔎 Browse by Grade  (A / B / C / D / F)" \
+            "📊 All with Finviz data  (full graham_defensive_screen)" \
+            "🔍 Look up one ticker" \
+            "📉 Most Overvalued  (Grade F, worst margin)" \
+            "── Combined View ──" \
+            "📈 Top Movers that are also Undervalued" \
+            "💸 High Dividend + Graham Grade A/B" \
+            "🏦 Low P/E + Graham Grade A/B" \
+            "── Data Management ──" \
+            "Create / refresh graham_valuation table + view" \
+            "Export Graham results to CSV" \
+            "Show grade distribution stats" \
+            "── Reference ──" \
+            "Explain Graham Number formula" \
+            "Explain Graham Growth Value formula" \
+            "Back")
+
+        case "$choice" in
+            "── Compute ──"|"── Browse Results ──"|"── Combined View ──"|"── Data Management ──"|"── Reference ──")
+                continue ;;
+
+            # ── COMPUTE ────────────────────────────────────────────────────────
+
+            "▶  Compute Graham Numbers  (all tickers in stock_quote)")
+                if [[ ! -f "$GRAHAM_PY" ]]; then
+                    error "graham_valuation.py not found at: $GRAHAM_PY"
+                    info  "Place the file at: backend/scraper/graham_valuation.py"
+                    pause; continue
+                fi
+                gum style --foreground 244 \
+                    "Reading EPS + BVPS from stock_quote, computing GN for every ticker." \
+                    "Takes only a few seconds — no web scraping required."
+                echo
+                python3 "$GRAHAM_PY"
+                last_run=$(date '+%Y-%m-%d %H:%M:%S')
+                success "Graham computation complete." ;;
+
+            "▶  Compute for specific tickers")
+                if [[ ! -f "$GRAHAM_PY" ]]; then
+                    error "graham_valuation.py not found: $GRAHAM_PY"; pause; continue
+                fi
+                local tickers_in
+                tickers_in=$(gum input \
+                    --placeholder "Space-separated symbols  e.g. AAPL MSFT NVDA" \
+                    --width 70)
+                [[ -z "$tickers_in" ]] && { pause; continue; }
+                # shellcheck disable=SC2086
+                python3 "$GRAHAM_PY" --ticker $tickers_in
+                success "Done." ;;
+
+            "▶  Set AAA Bond Yield & Recompute")
+                if [[ ! -f "$GRAHAM_PY" ]]; then
+                    error "graham_valuation.py not found: $GRAHAM_PY"; pause; continue
+                fi
+                gum style --foreground 244 \
+                    "The 1974 Graham Growth Formula requires the current AAA 20-yr bond yield." \
+                    "Current rates: check https://fred.stlouisfed.org/series/AAA" \
+                    "Default baked into graham_valuation.py: DEFAULT_AAA_YIELD = 5.20"
+                echo
+                local yield_val
+                yield_val=$(gum input \
+                    --placeholder "AAA bond yield  e.g. 5.20" \
+                    --width 15)
+                [[ -z "$yield_val" ]] && { info "Cancelled."; pause; continue; }
+                if ! [[ "$yield_val" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+                    error "Invalid number: $yield_val"; pause; continue
+                fi
+                warn "Recomputing all Graham valuations with yield = ${yield_val}%"
+                python3 "$GRAHAM_PY" --yield "$yield_val"
+                last_run=$(date '+%Y-%m-%d %H:%M:%S')
+                success "Recomputed with AAA yield = ${yield_val}%." ;;
+
+            # ── BROWSE RESULTS ─────────────────────────────────────────────────
+
+            "🏆 Top 50 Undervalued  (best Grade A/B stocks)")
+                clear
+                section_header "🏆 Top 50 Undervalued — Grade A & B"
+                echo
+                _gv_query \
+                    "AND grade IN ('A','B')" \
+                    "grade ASC, margin_of_safety_pct DESC NULLS LAST" \
+                    50 ;;
+
+            "🔎 Browse by Grade  (A / B / C / D / F)")
+                local grade_pick
+                grade_pick=$(gum choose \
+                    "A — Deep Value   (price ≤ 50% of Graham Number)" \
+                    "B — Good Value   (price 51–75% of Graham Number)" \
+                    "C — Fair Value   (price 76–99% of Graham Number)" \
+                    "D — Overvalued   (price 100–133% of Graham Number)" \
+                    "F — Highly Over  (price > 133% of Graham Number)" \
+                    "Back")
+                [[ "$grade_pick" == "Back" ]] && continue
+                local g; g=$(echo "$grade_pick" | cut -c1)
+                clear
+                section_header "🔎 Grade $g Stocks"
+                echo
+                _gv_query "AND grade = '$g'" "margin_of_safety_pct DESC NULLS LAST" 100 ;;
+
+            "📊 All with Finviz data  (full graham_defensive_screen)")
+                local n_pick
+                n_pick=$(gum choose "Top 25" "Top 50" "Top 100" "Top 200") || continue
+                local n_val; n_val="${n_pick//[^0-9]/}"
+                clear
+                section_header "📊 Graham Defensive Screen  (top ${n_val})"
+                echo
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     --pset="border=2" --pset="linestyle=unicode" \
+                     -c "
+                    SELECT *
+                    FROM graham_defensive_screen
+                    WHERE graham_number IS NOT NULL
+                    ORDER BY
+                        CASE grade
+                            WHEN 'A' THEN 1 WHEN 'B' THEN 2 WHEN 'C' THEN 3
+                            WHEN 'D' THEN 4 WHEN 'F' THEN 5 ELSE 6
+                        END,
+                        margin_of_safety_pct DESC NULLS LAST
+                    LIMIT ${n_val};
+                " 2>&1 | head -200 ;;
+
+            "🔍 Look up one ticker")
+                local sym
+                sym=$(gum input \
+                    --placeholder "Ticker symbol  e.g. AAPL" \
+                    --width 20 | tr '[:lower:]' '[:upper:]' | xargs)
+                [[ -z "$sym" ]] && { pause; continue; }
+                clear
+                section_header "🔍 Graham Valuation — $sym"
+                echo
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     --pset="format=wrapped" --pset="columns=90" \
+                     -c "
+                    SELECT
+                        symbol, grade, graham_number, price,
+                        margin_of_safety_pct    AS \"margin_of_safety_%\",
+                        price_to_graham_ratio   AS price_vs_graham,
+                        eps_ttm, book_value_ps,
+                        eps_growth_5y_pct       AS \"growth_5yr_%\",
+                        graham_growth_value,
+                        aaa_bond_yield          AS \"aaa_yield_%\",
+                        is_undervalued,
+                        pe_ratio, pb_ratio, roe_pct,
+                        net_margin_pct, gross_margin_pct,
+                        mkt_cap, div_yield_pct, beta, rsi_14,
+                        chg_today, chg_ytd,
+                        analyst_target, analyst_rec,
+                        debt_to_equity, quick_ratio,
+                        next_earnings, time_computed
+                    FROM graham_defensive_screen
+                    WHERE symbol = '${sym}';
+                " 2>&1 ;;
+
+            "📉 Most Overvalued  (Grade F, worst margin)")
+                clear
+                section_header "📉 Most Overvalued — Grade F"
+                echo
+                _gv_query \
+                    "AND grade = 'F'" \
+                    "margin_of_safety_pct ASC NULLS LAST" \
+                    50 ;;
+
+            # ── COMBINED VIEWS ─────────────────────────────────────────────────
+
+            "📈 Top Movers that are also Undervalued")
+                clear
+                section_header "📈 Top Movers + Graham Undervalued"
+                echo
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     --pset="border=2" --pset="linestyle=unicode" \
+                     -c "
+                    SELECT
+                        g.symbol,
+                        g.grade,
+                        ROUND(g.graham_number::NUMERIC, 2)         AS gn,
+                        ROUND(g.price::NUMERIC, 2)                 AS price,
+                        ROUND(g.margin_of_safety_pct::NUMERIC, 1)  AS \"mos_%\",
+                        q.performance_today                        AS chg_today,
+                        q.performance_week                         AS chg_week,
+                        q.volume,
+                        q.relative_volume                          AS rel_vol,
+                        q.market_capitalization                    AS mkt_cap
+                    FROM graham_defensive_screen g
+                    JOIN LATERAL (
+                        SELECT DISTINCT ON (symbol)
+                            symbol, performance_today, performance_week,
+                            volume, relative_volume, market_capitalization
+                        FROM stock_quote sq
+                        WHERE sq.symbol = g.symbol
+                        ORDER BY symbol, time_recorded DESC
+                    ) q ON TRUE
+                    WHERE g.is_undervalued = TRUE
+                      AND q.performance_today ~ '^-?[0-9]+\.?[0-9]*%?$'
+                    ORDER BY
+                        REPLACE(q.performance_today,'%','')::NUMERIC DESC NULLS LAST
+                    LIMIT 50;
+                " 2>&1 | head -80 ;;
+
+            "💸 High Dividend + Graham Grade A/B")
+                clear
+                section_header "💸 High Dividend Yield + Undervalued (Grade A or B)"
+                echo
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     --pset="border=2" --pset="linestyle=unicode" \
+                     -c "
+                    SELECT
+                        symbol, grade,
+                        ROUND(graham_number::NUMERIC, 2)        AS gn,
+                        ROUND(price::NUMERIC, 2)                AS price,
+                        ROUND(margin_of_safety_pct::NUMERIC,1)  AS \"mos_%\",
+                        div_yield_pct                           AS \"div_yield_%\",
+                        pe_ratio, mkt_cap
+                    FROM graham_defensive_screen
+                    WHERE grade IN ('A','B')
+                      AND div_yield_pct IS NOT NULL
+                      AND div_yield_pct > 0
+                    ORDER BY div_yield_pct DESC NULLS LAST
+                    LIMIT 50;
+                " 2>&1 | head -80 ;;
+
+            "🏦 Low P/E + Graham Grade A/B")
+                clear
+                section_header "🏦 Low P/E Ratio + Graham Undervalued (Grade A or B)"
+                echo
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     --pset="border=2" --pset="linestyle=unicode" \
+                     -c "
+                    SELECT
+                        symbol, grade,
+                        ROUND(graham_number::NUMERIC, 2)        AS gn,
+                        ROUND(price::NUMERIC, 2)                AS price,
+                        ROUND(margin_of_safety_pct::NUMERIC,1)  AS \"mos_%\",
+                        pe_ratio,
+                        ROUND(eps_ttm::NUMERIC, 2)              AS eps,
+                        mkt_cap
+                    FROM graham_defensive_screen
+                    WHERE grade IN ('A','B')
+                      AND pe_ratio IS NOT NULL
+                      AND pe_ratio > 0
+                    ORDER BY pe_ratio ASC NULLS LAST
+                    LIMIT 50;
+                " 2>&1 | head -80 ;;
+
+            # ── DATA MANAGEMENT ───────────────────────────────────────────────
+
+            "Create / refresh graham_valuation table + view")
+                if [[ ! -f "$GRAHAM_PY" ]]; then
+                    error "graham_valuation.py not found: $GRAHAM_PY"; pause; continue
+                fi
+                info "Running: python3 graham_valuation.py --create-table …"
+                python3 "$GRAHAM_PY" --create-table
+                success "Schema ready."
+                # Also refresh the PostgREST schema cache
+                psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                     -c "NOTIFY pgrst, 'reload schema';" >/dev/null 2>&1 || true ;;
+
+            "Export Graham results to CSV")
+                mkdir -p "$EXPORT_DIR"
+                local ts fname
+                ts=$(date +%Y%m%d_%H%M%S)
+                fname="${EXPORT_DIR}/graham_valuation_${ts}.csv"
+                gum spin --title "Exporting graham_defensive_screen to CSV…" -- \
+                    psql -X --username="$PSQL_USER" --dbname="$PSQL_DB" \
+                         -c "\COPY (
+                             SELECT * FROM graham_defensive_screen
+                             ORDER BY
+                                 CASE grade WHEN 'A' THEN 1 WHEN 'B' THEN 2
+                                            WHEN 'C' THEN 3 WHEN 'D' THEN 4
+                                            WHEN 'F' THEN 5 ELSE 6 END,
+                                 margin_of_safety_pct DESC NULLS LAST
+                         ) TO '${fname}' WITH CSV HEADER" 2>/dev/null
+                local cnt; cnt=$(( $(wc -l < "$fname") - 1 ))
+                success "Exported ${cnt} rows → $fname" ;;
+
+            "Show grade distribution stats")
+                if [[ ! -f "$GRAHAM_PY" ]]; then
+                    error "graham_valuation.py not found: $GRAHAM_PY"; pause; continue
+                fi
+                echo
+                python3 "$GRAHAM_PY" --stats ;;
+
+            # ── REFERENCE ──────────────────────────────────────────────────────
+
+            "Explain Graham Number formula")
+                clear
+                gum style \
+                    --border normal --margin "1" --padding "1 3" \
+                    --border-foreground 212 \
+                    --bold "Graham Number — Defensive Investor Formula"
+                echo
+                gum style --foreground 33 "  GN = √( 22.5 × EPS_TTM × Book_Value_Per_Share )"
+                echo
+                gum style --foreground 244 \
+                    "  Source: 'The Intelligent Investor' (Benjamin Graham, 1949)" \
+                    "  Wikipedia: https://en.wikipedia.org/wiki/Benjamin_Graham_formula" \
+                    "" \
+                    "  The constant 22.5 = 15 (max P/E) × 1.5 (max P/Book)" \
+                    "  Graham's rule: product of (P/E × P/Book) should not exceed 22.5." \
+                    "" \
+                    "  Eligibility criteria (Graham's own words):" \
+                    "    • EPS_TTM > 0   (no loss-making companies)" \
+                    "    • BVPS > 0      (positive shareholders' equity)" \
+                    "    • Exclude companies with below-par debt positions" \
+                    "" \
+                    "  Interpretation:" \
+                    "    • If price < GN  → stock is a potential value buy" \
+                    "    • Margin of safety = (GN − Price) / GN × 100%" \
+                    "    • Grade A: >50% MoS  Grade B: 25–49%  Grade C: 1–24%" \
+                    "    • Grade D: 0–25% overvalued  Grade F: >25% overvalued" \
+                    "" \
+                    "  ⚠  Graham himself cautioned this formula is illustrative," \
+                    "     not a standalone buy/sell signal. Always apply other" \
+                    "     criteria (debt load, growth, moat, management)."
+                echo ;;
+
+            "Explain Graham Growth Value formula")
+                clear
+                gum style \
+                    --border normal --margin "1" --padding "1 3" \
+                    --border-foreground 76 \
+                    --bold "Graham Growth Value — 1974 Revised Formula"
+                echo
+                gum style --foreground 76 "  GGV = EPS × ( 8.5 + 2g ) × 4.4 / Y"
+                echo
+                gum style --foreground 244 \
+                    "  Where:" \
+                    "    EPS = trailing twelve-month earnings per share" \
+                    "    g   = reasonably expected 7–10 year EPS growth rate (%)" \
+                    "    8.5 = assumed P/E for a zero-growth company" \
+                    "    4.4 = average AAA bond yield in Graham's 1962 base year" \
+                    "    Y   = current yield on AAA 20-year corporate bonds (%)" \
+                    "" \
+                    "  Published: 'The Decade 1965-1974' (Graham, 1974 Renaissance of Value)" \
+                    "  Wikipedia: https://en.wikipedia.org/wiki/Benjamin_Graham_formula" \
+                    "" \
+                    "  Interpretation:" \
+                    "    • GGV accounts for interest rate environment (via Y)" \
+                    "    • Rising rates → lower intrinsic value (growth is discounted more)" \
+                    "    • If Price < GGV → potential undervaluation for growth stocks" \
+                    "    • Growth rate (g) is capped at ±25% to prevent distortion" \
+                    "" \
+                    "  ⚠  Graham explicitly noted this formula was illustrative —" \
+                    "     published for educational comparison, not as a direct signal." \
+                    "     Use alongside the Graham Number and qualitative analysis."
+                echo ;;
+
+            "Back" | *)
+                pop_breadcrumb
+                CURRENT_MENU="main"
+                return ;;
+        esac
+        pause
+    done
+}
+
+
 main_menu() {
     MENU_BREADCRUMB=("Main")
     section_header "Main Menu"
 
     case "$(gum choose \
         "📈 Finviz Scraper" \
+        "📊 Market Explorer" \
+        "🧮 Graham Valuation" \
         "📰 YourStockForecast.com" \
         "Database Management" \
         "Table Management" \
@@ -735,24 +1432,24 @@ main_menu() {
         "Settings" \
         "Exit")" in
 
-        "📈 Finviz Scraper")         CURRENT_MENU="finviz"      ;;
-        "📰 YourStockForecast.com")  CURRENT_MENU="ysf"         ;;
-        "Database Management")       CURRENT_MENU="database"    ;;
-        "Table Management")          CURRENT_MENU="table"       ;;
-        "Analytics & Queries")       CURRENT_MENU="analytics"   ;;
-        "Export Data")               CURRENT_MENU="export"      ;;
-        "Maintenance")               CURRENT_MENU="maintenance" ;;
-        "GitHub Operations")         CURRENT_MENU="github"      ;;
-        "PostgREST Setup")           CURRENT_MENU="postgrest"   ;;
-        "Insert Data")               CURRENT_MENU="insert_data" ;;
-        "Settings")                  CURRENT_MENU="settings"    ;;
-        *)                           CURRENT_MENU="exit"        ;;
+        "📈 Finviz Scraper")         CURRENT_MENU="finviz"          ;;
+        "📊 Market Explorer")        CURRENT_MENU="finviz_explorer"  ;;
+        "🧮 Graham Valuation")       CURRENT_MENU="graham"           ;;
+        "📰 YourStockForecast.com")  CURRENT_MENU="ysf"              ;;
+        "Database Management")       CURRENT_MENU="database"         ;;
+        "Table Management")          CURRENT_MENU="table"            ;;
+        "Analytics & Queries")       CURRENT_MENU="analytics"        ;;
+        "Export Data")               CURRENT_MENU="export"           ;;
+        "Maintenance")               CURRENT_MENU="maintenance"      ;;
+        "GitHub Operations")         CURRENT_MENU="github"           ;;
+        "PostgREST Setup")           CURRENT_MENU="postgrest"        ;;
+        "Insert Data")               CURRENT_MENU="insert_data"      ;;
+        "Settings")                  CURRENT_MENU="settings"         ;;
+        *)                           CURRENT_MENU="exit"             ;;
     esac
 }
 
-############################
-# Database Management Menu #
-############################
+
 database_menu() {
     push_breadcrumb "Database"
     section_header "Database Management"
@@ -3837,6 +4534,193 @@ app_exit() {
 #   and retries — but if every retry gets the same block, it gives up.
 #   Fix: DELAY_MIN=5, DELAY_MAX=10, run overnight (2–6 AM local time).
 
+# ══════════════════════════════════════════════════════════════════════════════
+# §D  pull_sp500_tickers()  —  Fetch live S&P 500 tickers from Wikipedia
+# ══════════════════════════════════════════════════════════════════════════════
+# Scrapes https://en.wikipedia.org/wiki/List_of_S%26P_500_companies every time
+# it is called, so the list is always current.  The user chooses to:
+#   a) REPLACE  active_tickers.txt with exactly the 503 S&P 500 symbols
+#   b) MERGE    (add any S&P 500 symbols not already in the file)
+#   c) SAVE     to a separate sp500_tickers.txt for reference only
+# ──────────────────────────────────────────────────────────────────────────────
+SP500_TICKERS_FILE="${SCRIPT_DIR}/backend/scraper/sp500_tickers.txt"
+
+pull_sp500_tickers() {
+    section_header "🏛️ Pull S&P 500 Tickers from Wikipedia"
+
+    gum style --foreground 244 \
+        "Source: https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" \
+        "Fetches the live constituents table every time — always up to date." \
+        "" \
+        "After pulling, you can replace or merge with active_tickers.txt."
+    echo
+
+    # ── 1. Fetch & parse with Python (requests + lxml already installed) ──────
+    info "Fetching S&P 500 constituent list from Wikipedia…"
+    echo
+
+    local tmp_tickers
+    tmp_tickers=$(python3 - << 'PYEOF'
+import sys
+try:
+    import requests
+    from bs4 import BeautifulSoup
+except ImportError as e:
+    print(f"IMPORT_ERROR:{e}", file=sys.stderr)
+    sys.exit(1)
+
+url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+try:
+    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+    resp.raise_for_status()
+except Exception as e:
+    print(f"FETCH_ERROR:{e}", file=sys.stderr)
+    sys.exit(1)
+
+soup = BeautifulSoup(resp.text, "lxml")
+table = soup.find("table", {"id": "constituents"})
+if not table:
+    # Fall back: first wikitable on the page
+    table = soup.find("table", class_="wikitable")
+
+if not table:
+    print("TABLE_NOT_FOUND", file=sys.stderr)
+    sys.exit(1)
+
+tickers = []
+for row in table.find_all("tr")[1:]:
+    cols = row.find_all(["td", "th"])
+    if not cols:
+        continue
+    sym = cols[0].get_text(strip=True)
+    if sym and sym.isascii() and 1 <= len(sym) <= 5:
+        # Wikipedia uses dots (BRK.B) but Finviz uses dashes (BRK-B)
+        sym = sym.replace(".", "-")
+        tickers.append(sym)
+
+if not tickers:
+    print("NO_TICKERS", file=sys.stderr)
+    sys.exit(1)
+
+# Print one per line — shell captures this
+print("\n".join(sorted(set(tickers))))
+PYEOF
+)
+
+    local py_exit=$?
+
+    if [[ $py_exit -ne 0 || -z "$tmp_tickers" ]]; then
+        error "Failed to fetch S&P 500 tickers from Wikipedia."
+        error "Check your internet connection and that requests/beautifulsoup4 are installed."
+        info  "Install: pip install requests beautifulsoup4 lxml --break-system-packages"
+        pause
+        return 1
+    fi
+
+    local count
+    count=$(echo "$tmp_tickers" | wc -l | tr -d ' ')
+    success "✅  Retrieved ${count} S&P 500 tickers from Wikipedia."
+    echo
+
+    # ── 2. Preview first 20 ───────────────────────────────────────────────────
+    gum style --bold --foreground 212 "First 20 symbols:"
+    echo "$tmp_tickers" | head -20 | \
+        awk '{printf "  %-8s", $0; if(NR%10==0) print ""}
+             END{if(NR%10!=0) print ""}'
+    echo
+
+    # ── 3. Ask what to do ─────────────────────────────────────────────────────
+    local action
+    action=$(gum choose \
+        "📥  Replace  active_tickers.txt  (use ONLY S&P 500 symbols)" \
+        "🔀  Merge    active_tickers.txt  (add S&P 500 to existing list)" \
+        "💾  Save to  sp500_tickers.txt   (reference copy, no changes to active)" \
+        "🔙  Cancel")
+
+    mkdir -p "$(dirname "$ACTIVE_TICKERS_FILE")"
+
+    case "$action" in
+        "📥  Replace"*)
+            if confirm "Replace active_tickers.txt with ${count} S&P 500 symbols?"; then
+                {
+                    echo "# active_tickers.txt — S&P 500 constituent tickers"
+                    echo "# Pulled from Wikipedia on $(date '+%Y-%m-%d %H:%M:%S')"
+                    echo "# Source: https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+                    echo "# Total: ${count} tickers"
+                    echo ""
+                    echo "$tmp_tickers"
+                } > "$ACTIVE_TICKERS_FILE"
+                # Also save a dated reference copy
+                echo "$tmp_tickers" > "$SP500_TICKERS_FILE"
+                success "✅  active_tickers.txt replaced with ${count} S&P 500 symbols."
+                info "    A reference copy was also saved to: $(basename "$SP500_TICKERS_FILE")"
+            else
+                info "Cancelled — active_tickers.txt unchanged."
+            fi
+            ;;
+
+        "🔀  Merge"*)
+            local existing_count=0
+            local added=0
+
+            # Load existing tickers (strip comments)
+            declare -A existing_set
+            if [[ -f "$ACTIVE_TICKERS_FILE" ]]; then
+                while IFS= read -r line; do
+                    local t; t=$(echo "$line" | xargs)
+                    [[ -z "$t" || "$t" == \#* ]] && continue
+                    existing_set["$t"]=1
+                    (( existing_count++ ))
+                done < "$ACTIVE_TICKERS_FILE"
+            fi
+
+            # Find truly new symbols
+            local new_tickers=""
+            while IFS= read -r sym; do
+                [[ -z "$sym" ]] && continue
+                if [[ -z "${existing_set[$sym]+_}" ]]; then
+                    new_tickers+="${sym}"$'\n'
+                    (( added++ ))
+                fi
+            done <<< "$tmp_tickers"
+
+            if [[ $added -eq 0 ]]; then
+                success "Nothing to add — all ${count} S&P 500 symbols already in active_tickers.txt."
+            else
+                info "${added} new symbols will be added (${existing_count} already present)."
+                if confirm "Merge ${added} new S&P 500 symbols into active_tickers.txt?"; then
+                    {
+                        echo ""
+                        echo "# S&P 500 additions — merged $(date '+%Y-%m-%d %H:%M:%S')"
+                        echo -n "$new_tickers"
+                    } >> "$ACTIVE_TICKERS_FILE"
+                    success "✅  Merged ${added} new symbols into active_tickers.txt."
+                    info "    Total active tickers: $((existing_count + added))"
+                else
+                    info "Cancelled."
+                fi
+            fi
+            unset existing_set
+            # Save reference copy regardless
+            echo "$tmp_tickers" > "$SP500_TICKERS_FILE"
+            ;;
+
+        "💾  Save"*)
+            echo "$tmp_tickers" > "$SP500_TICKERS_FILE"
+            success "✅  ${count} S&P 500 tickers saved to: $(basename "$SP500_TICKERS_FILE")"
+            info "    active_tickers.txt was NOT changed."
+            ;;
+
+        *)
+            info "Cancelled."
+            return
+            ;;
+    esac
+
+    echo
+    pause
+}
+
 finviz_menu() {
     push_breadcrumb "📈 Finviz Scraper"
     while true; do
@@ -3866,6 +4750,7 @@ finviz_menu() {
             "── Ticker List ──" \
             "Build active_tickers.txt from progress file" \
             "View active_tickers.txt" \
+            "🏛️  Pull S&P 500 tickers from Wikipedia" \
             "Parse log → extract blocked & delisted tickers" \
             "Add a ticker to active list" \
             "Remove a ticker from active list" \
@@ -3881,6 +4766,9 @@ finviz_menu() {
             "Show scraper settings & rate-limit advice" \
             "Edit dataminer.py" \
             "Cron schedule helper" \
+            "── Analytics ──" \
+            "📊 Market Explorer  (top 50 by any metric)" \
+            "🧮 Graham Valuation" \
             "Back")"
 
         case "$choice" in
@@ -3970,6 +4858,11 @@ PYEOF
                 grep -v '^\s*#' "$ACTIVE_TICKERS_FILE" | grep -v '^\s*$' | \
                     awk '{printf "%-10s", $0; if(NR%10==0) print ""}
                          END{if(NR%10!=0) print ""}' | head -80 ;;
+
+            "🏛️  Pull S&P 500 tickers from Wikipedia")
+                pull_sp500_tickers
+                # Refresh ticker count for header on next loop iteration
+                continue ;;
 
             "Parse log → extract blocked & delisted tickers")
                 if [[ ! -f "$DATAMINER_LOG" ]]; then
@@ -4250,6 +5143,20 @@ ENDSQL
                         warn "xclip/xsel not found — copy from above manually."
                     fi
                 fi ;;
+
+
+            "── Analytics ──")
+                continue ;;
+
+            "📊 Market Explorer  (top 50 by any metric)")
+                CURRENT_MENU="finviz_explorer"
+                pop_breadcrumb
+                return ;;
+
+            "🧮 Graham Valuation")
+                CURRENT_MENU="graham"
+                pop_breadcrumb
+                return ;;
 
             "Back" | *)
                 pop_breadcrumb
@@ -4760,25 +5667,28 @@ ysf_install_hugo() {
 }
 
 
+
 run_app() {
     splash_screen
     while true; do
         clear
         case "$CURRENT_MENU" in
-            main)        main_menu        ;;
-            database)    database_menu    ;;
-            table)       table_menu       ;;
-            analytics)   analytics_menu   ;;
-            export)      export_menu      ;;
-            maintenance) maintenance_menu ;;
-            github)      github_menu      ;;
-            postgrest)   postgrest_menu   ;;
-            insert_data) insert_data_menu ;;
-            finviz)      finviz_menu      ;;
-            ysf)         ysf_menu          ;;
-            settings)    settings_menu    ;;
-            exit)        app_exit         ;;
-            *)           CURRENT_MENU="main" ;;
+            main)            main_menu            ;;
+            finviz)          finviz_menu          ;;
+            finviz_explorer) finviz_explorer_menu ;;
+            graham)          graham_menu          ;;
+            database)        database_menu        ;;
+            table)           table_menu           ;;
+            analytics)       analytics_menu       ;;
+            export)          export_menu          ;;
+            maintenance)     maintenance_menu     ;;
+            github)          github_menu          ;;
+            postgrest)       postgrest_menu       ;;
+            insert_data)     insert_data_menu     ;;
+            ysf)             ysf_menu             ;;
+            settings)        settings_menu        ;;
+            exit)            app_exit             ;;
+            *)               CURRENT_MENU="main"  ;;
         esac
     done
 }
