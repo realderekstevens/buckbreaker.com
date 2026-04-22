@@ -4728,7 +4728,7 @@ PYEOF
 import os
 script_dir    = "${SCRIPT_DIR}"
 delisted_file = os.path.join(script_dir, "delisted_tickers.txt")
-active_file   = os.path.join(script_dir, "active_tickers.txt")
+active_file   = "${ACTIVE_TICKERS_FILE}"
 
 if not os.path.exists(delisted_file):
     print("delisted_tickers.txt not found.")
