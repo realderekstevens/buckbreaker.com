@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-04-27T18:28:57.977984Z",
+  "summary": {
+    "total_symbols": "6659",
+    "advancing": "3104",
+    "declining": "3213",
+    "avg_change_pct": "0.04",
+    "last_updated": "2026-04-26 05:42:28"
+  },
+  "top_gainers": [
+    {
+      "symbol": "LOCL",
+      "current_stock_price": "6.0",
+      "performance_today": "54.79%",
+      "volume": "2644.68",
+      "market_capitalization": "65.18M"
+    },
+    {
+      "symbol": "GNLN",
+      "current_stock_price": "3.92",
+      "performance_today": "40.71%",
+      "volume": "29.11",
+      "market_capitalization": "3.49M"
+    },
+    {
+      "symbol": "NVTX",
+      "current_stock_price": "59.44",
+      "performance_today": "34.48%",
+      "volume": "3.78",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "BEEM",
+      "current_stock_price": "2.83",
+      "performance_today": "29.61%",
+      "volume": "19.75",
+      "market_capitalization": "41.64M"
+    },
+    {
+      "symbol": "CRMX",
+      "current_stock_price": "24.07",
+      "performance_today": "28.03%",
+      "volume": "2.93",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "GEVX",
+      "current_stock_price": "84.06",
+      "performance_today": "26.63%",
+      "volume": "2.24",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "FCEL",
+      "current_stock_price": "8.44",
+      "performance_today": "24.34%",
+      "volume": "8.4",
+      "market_capitalization": "625.14M"
+    },
+    {
+      "symbol": "IPWR",
+      "current_stock_price": "10.75",
+      "performance_today": "24.01%",
+      "volume": "10.67",
+      "market_capitalization": "47.15M"
+    },
+    {
+      "symbol": "BQ",
+      "current_stock_price": null,
+      "performance_today": "21.33%",
+      "volume": "14.87",
+      "market_capitalization": "2.62M"
+    },
+    {
+      "symbol": "DXLG",
+      "current_stock_price": "1.25",
+      "performance_today": "20.79%",
+      "volume": "1.29",
+      "market_capitalization": "41.65M"
+    }
+  ],
+  "top_losers": [
+    {
+      "symbol": "CAR",
+      "current_stock_price": "114.29",
+      "performance_today": "-37.82%",
+      "volume": "6.37",
+      "market_capitalization": "15.68B"
+    },
+    {
+      "symbol": "DSS",
+      "current_stock_price": "3.0",
+      "performance_today": "-25.51%",
+      "volume": "5.63",
+      "market_capitalization": "6.81M"
+    },
+    {
+      "symbol": "GCDT",
+      "current_stock_price": null,
+      "performance_today": "-21.65%",
+      "volume": "0.99",
+      "market_capitalization": "-"
+    },
+    {
+      "symbol": "CRCD",
+      "current_stock_price": "4.83",
+      "performance_today": "-17.58%",
+      "volume": "1.72",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "TOVX",
+      "current_stock_price": "2.5",
+      "performance_today": "-17.39%",
+      "volume": "2.18",
+      "market_capitalization": "15.54M"
+    },
+    {
+      "symbol": "SMU",
+      "current_stock_price": "14.89",
+      "performance_today": "-16.86%",
+      "volume": "2.86",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "SMUP",
+      "current_stock_price": "11.34",
+      "performance_today": "-16.86%",
+      "volume": "1.71",
+      "market_capitalization": null
+    },
+    {
+      "symbol": "TPB",
+      "current_stock_price": "132.5",
+      "performance_today": "-16.50%",
+      "volume": "2.5",
+      "market_capitalization": "1.35B"
+    },
+    {
+      "symbol": "AVEX",
+      "current_stock_price": null,
+      "performance_today": "-16.17%",
+      "volume": "0.42",
+      "market_capitalization": "2.67B"
+    },
+    {
+      "symbol": "RKTL",
+      "current_stock_price": "15.45",
+      "performance_today": "-15.80%",
+      "volume": "0.5",
+      "market_capitalization": null
+    }
+  ]
+}

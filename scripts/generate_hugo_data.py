@@ -119,13 +119,14 @@ CREATE OR REPLACE FUNCTION market_summary()
 RETURNS JSON LANGUAGE sql STABLE SECURITY DEFINER AS $$
     SELECT json_build_object(
         'total_symbols',  COUNT(*),
-        'advancing',      COUNT(*) FILTER (WHERE performance_today::NUMERIC > 0),
-        'declining',      COUNT(*) FILTER (WHERE performance_today::NUMERIC < 0),
-        'avg_change_pct', ROUND(AVG(performance_today::NUMERIC), 2),
+        'advancing',      COUNT(*) FILTER (WHERE performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' AND REPLACE(performance_today,'%','')::NUMERIC > 0),
+        'declining',      COUNT(*) FILTER (WHERE performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' AND REPLACE(performance_today,'%','')::NUMERIC < 0),
+        'avg_change_pct', ROUND(AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END), 2),
         'last_updated',   MAX(time_recorded)
     )
     FROM latest_quotes
-    WHERE performance_today IS NOT NULL AND current_stock_price IS NOT NULL;
+    WHERE performance_today IS NOT NULL AND current_stock_price IS NOT NULL
+      AND performance_today ~ '^-?[0-9]+\.?[0-9]*%?$';
 $$;
 """)
         execute("GRANT EXECUTE ON FUNCTION market_summary() TO anon;")
@@ -141,12 +142,12 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     SELECT
         major_index_membership::TEXT,
         COUNT(*),
-        ROUND(AVG(performance_today::NUMERIC), 2),
-        ROUND(AVG(performance_week::NUMERIC), 2)
+        ROUND(AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END), 2),
+        ROUND(AVG(CASE WHEN performance_week ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_week,'%','')::NUMERIC END), 2)
     FROM latest_quotes
     WHERE major_index_membership IS NOT NULL AND performance_today IS NOT NULL
     GROUP BY major_index_membership
-    ORDER BY AVG(performance_today::NUMERIC) DESC NULLS LAST;
+    ORDER BY AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END) DESC NULLS LAST;
 $$;
 """)
         execute("GRANT EXECUTE ON FUNCTION sector_performance() TO anon;")
@@ -163,9 +164,9 @@ def gen_snapshot():
     rows = fetch("""
         SELECT
             COUNT(*)                                                  AS total_symbols,
-            COUNT(*) FILTER (WHERE performance_today::NUMERIC > 0)   AS advancing,
-            COUNT(*) FILTER (WHERE performance_today::NUMERIC < 0)   AS declining,
-            ROUND(AVG(performance_today::NUMERIC), 2)                 AS avg_change_pct,
+            COUNT(*) FILTER (WHERE CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END > 0)   AS advancing,
+            COUNT(*) FILTER (WHERE CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END < 0)   AS declining,
+            ROUND(AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END), 2)                 AS avg_change_pct,
             MAX(time_recorded)                                        AS last_updated
         FROM latest_quotes
         WHERE performance_today IS NOT NULL
@@ -177,7 +178,7 @@ def gen_snapshot():
         SELECT symbol, current_stock_price, performance_today, volume, market_capitalization
         FROM latest_quotes
         WHERE performance_today IS NOT NULL
-        ORDER BY performance_today::NUMERIC DESC NULLS LAST
+        ORDER BY CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END DESC NULLS LAST
         LIMIT 10;
     """)
 
@@ -185,7 +186,7 @@ def gen_snapshot():
         SELECT symbol, current_stock_price, performance_today, volume, market_capitalization
         FROM latest_quotes
         WHERE performance_today IS NOT NULL
-        ORDER BY performance_today::NUMERIC ASC NULLS LAST
+        ORDER BY CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END ASC NULLS LAST
         LIMIT 10;
     """)
 
@@ -206,15 +207,15 @@ def gen_sectors():
         SELECT
             major_index_membership                    AS sector,
             COUNT(*)                                  AS symbol_count,
-            ROUND(AVG(performance_today::NUMERIC), 2) AS avg_today,
-            ROUND(AVG(performance_week::NUMERIC), 2)  AS avg_week,
-            ROUND(AVG(performance_month::NUMERIC), 2) AS avg_month
+            ROUND(AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END), 2) AS avg_today,
+            ROUND(AVG(CASE WHEN performance_week ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_week,'%','')::NUMERIC END), 2)  AS avg_week,
+            ROUND(AVG(CASE WHEN performance_month ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_month,'%','')::NUMERIC END), 2) AS avg_month
         FROM latest_quotes
         WHERE major_index_membership IS NOT NULL
           AND major_index_membership != ''
           AND performance_today IS NOT NULL
         GROUP BY major_index_membership
-        ORDER BY avg_today DESC NULLS LAST;
+        ORDER BY ROUND(AVG(CASE WHEN performance_today ~ '^-?[0-9]+\.?[0-9]*%?$' THEN REPLACE(performance_today,'%','')::NUMERIC END), 2) DESC NULLS LAST;
     """)
     (DATA_DIR / "sectors.json").write_text(json.dumps({
         "generated_at": datetime.utcnow().isoformat() + "Z",

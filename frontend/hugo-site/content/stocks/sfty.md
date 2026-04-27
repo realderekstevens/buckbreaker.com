@@ -1,0 +1,19 @@
+---
+title: "SFTY Stock Price, Quote & Analysis"
+symbol: "SFTY"
+slug: "sfty"
+date: "2026-04-22"
+description: "Live SFTY stock price, fundamentals, performance metrics, and analysis."
+sectors: ["-"]
+params:
+  symbol: "SFTY"
+  last_price: "29.02"
+  last_change: "-0.65%"
+  market_cap: ""
+  sector: "-"
+---
+
+## SFTY — Live Stock Data
+
+Current price, P/E ratio, earnings, revenue, and technical indicators for **SFTY**
+are loaded live from our database. Data refreshes every 60 seconds.

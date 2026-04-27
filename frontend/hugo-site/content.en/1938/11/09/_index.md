@@ -1,0 +1,7 @@
+---
+title: "November 9, 1938"
+date: "1938-11-09T00:00:00Z"
+type: newspaper
+layout: newspaper
+publication: "The New York Times"
+---

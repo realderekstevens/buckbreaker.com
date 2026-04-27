@@ -3,11 +3,11 @@
 {{/* ── Article header ──────────────────────────────────────────────────── */}}
 <div class="article-header" style="margin-bottom: 2rem;">
 
-  {{/* Back link to the newspaper date */}}
+  {{/* Back link to parent newspaper date */}}
   {{ with .Parent }}
   <a href="{{ .Permalink }}" style="
-    font-size: 0.8rem;
-    opacity: 0.6;
+    font-size: 0.78rem;
+    color: var(--muted, rgba(224,224,224,0.5));
     text-decoration: none;
     display: inline-block;
     margin-bottom: 1rem;
@@ -15,19 +15,21 @@
   {{ end }}
 
   <h1 style="
-    font-family: 'Times New Roman', serif;
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
     font-size: 1.8rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.25;
     margin-bottom: 0.75rem;
+    color: var(--body-font-color, #e0e0e0);
   ">{{ .Title }}</h1>
 
+  {{/* Meta bar */}}
   <div style="
-    font-size: 0.8rem;
-    opacity: 0.65;
-    border-top: 1px solid var(--gray-200, #e5e7eb);
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
-    padding: 0.5rem 0;
+    font-size: 0.78rem;
+    color: var(--muted, rgba(224,224,224,0.5));
+    border-top: 1px solid var(--card-border, #242424);
+    border-bottom: 1px solid var(--card-border, #242424);
+    padding: 0.45rem 0;
     margin-bottom: 1.5rem;
     display: flex;
     flex-wrap: wrap;
@@ -40,11 +42,12 @@
     {{ with .Params.section }}<span>{{ . }}</span>{{ end }}
   </div>
 
+  {{/* Pull-quote summary */}}
   {{ with .Params.summary }}
   <p style="
     font-style: italic;
-    opacity: 0.75;
-    border-left: 3px solid var(--color-link, #4a9eff);
+    color: var(--muted, rgba(224,224,224,0.5));
+    border-left: 3px solid var(--color-link, #6aabf7);
     padding-left: 1rem;
     margin-bottom: 1.5rem;
   ">{{ . }}</p>
@@ -54,35 +57,49 @@
 
 {{/* ── Article body ─────────────────────────────────────────────────────── */}}
 <div class="article-body" style="
-  font-family: 'Times New Roman', serif;
+  font-family: 'Georgia', 'Times New Roman', Times, serif;
   font-size: 1.05rem;
-  line-height: 1.8;
+  line-height: 1.85;
   max-width: 680px;
+  color: var(--body-font-color, #e0e0e0);
 ">
   {{ .Content }}
 </div>
 
 {{/* ── Tags ─────────────────────────────────────────────────────────────── */}}
 {{ with .Params.tags }}
-<div style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.6;">
+<div style="margin-top: 2rem; font-size: 0.78rem; color: var(--muted, rgba(224,224,224,0.5));">
   {{ range . }}
   <a href="{{ "/tags/" | relURL }}{{ . | urlize }}" style="
     display: inline-block;
-    margin-right: 0.5rem;
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
     padding: 0.15rem 0.5rem;
-    border: 1px solid currentColor;
+    border: 1px solid var(--card-border, #242424);
     border-radius: 3px;
     text-decoration: none;
-    color: inherit;
-  ">{{ . }}</a>
+    color: var(--muted, rgba(224,224,224,0.5));
+    transition: border-color 0.12s, color 0.12s;
+  "
+    onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.color='var(--brand-color,#f5c518)'"
+    onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.color='var(--muted,rgba(224,224,224,0.5))'"
+  >{{ . }}</a>
   {{ end }}
 </div>
 {{ end }}
 
-{{/* ── Back link ────────────────────────────────────────────────────────── */}}
+{{/* ── Back link footer ─────────────────────────────────────────────────── */}}
 {{ with .Parent }}
-<div style="margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--gray-200, #e5e7eb);">
-  <a href="{{ .Permalink }}">← Back to {{ .Date | time.Format "January 2, 2006" }} edition</a>
+<div style="
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border, #242424);
+">
+  <a href="{{ .Permalink }}" style="
+    color: var(--color-link, #6aabf7);
+    text-decoration: none;
+    font-size: 0.875rem;
+  ">← Back to {{ .Date | time.Format "January 2, 2006" }} edition</a>
 </div>
 {{ end }}
 

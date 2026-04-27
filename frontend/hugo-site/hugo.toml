@@ -1,24 +1,16 @@
 baseURL  = "https://yourstockforecast.com"
 title    = "YourStockForecast"
 
-# theme = "hugo-book"   # ← uncomment if using git submodule instead of Hugo Modules
-
 # ─────────────────────────────────────────────────────────────────────────────
 # MULTILINGUAL
-# The English language merges two source dirs:
-#   content/     → stock/market/screener pages
-#   content.en/  → newspaper archive articles
-# We do this by pointing contentDir at a single merged dir — see module.mounts.
 # ─────────────────────────────────────────────────────────────────────────────
 defaultContentLanguage         = "en"
 defaultContentLanguageInSubdir = false
 
 [languages]
-
   [languages.en]
     languageName = "English"
     weight       = 1
-    # contentDir is NOT set here — module.mounts below feeds both dirs into "content"
 
   [languages.es]
     languageName = "Español"
@@ -32,18 +24,16 @@ defaultContentLanguageInSubdir = false
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HUGO MODULES
-# Both content/ and content.en/ are mounted to the same target "content"
-# for the English language. Hugo merges them at build time.
-# The `lang` key is deprecated since v0.153 but remains functional.
-# The replacement (sites.matrix) does not yet support content-dir merging
-# reliably with third-party themes — use module.mounts until it stabilises.
+# NOTE: module.mounts.lang is deprecated since v0.153 but still functional.
+# The replacement (sites.matrix) does not yet reliably support content-dir
+# merging for third-party themes. Leave as-is until Hugo stabilises the API.
 # ─────────────────────────────────────────────────────────────────────────────
 [module]
 
   [[module.imports]]
     path = "github.com/alex-shpak/hugo-book"
 
-  # ── English content — two dirs merged into one ────────────────────────────
+  # English: merge content/ (stock pages) + content.en/ (newspaper archive)
   [[module.mounts]]
     source = "content"
     target = "content"
@@ -54,7 +44,7 @@ defaultContentLanguageInSubdir = false
     target = "content"
     lang   = "en"
 
-  # ── Spanish & Chinese content ─────────────────────────────────────────────
+  # Spanish & Chinese
   [[module.mounts]]
     source = "content.es"
     target = "content"
@@ -65,7 +55,7 @@ defaultContentLanguageInSubdir = false
     target = "content"
     lang   = "zh"
 
-  # ── Standard asset mounts (required when any custom mount is declared) ────
+  # Standard asset mounts (required when any custom mount is declared)
   [[module.mounts]]
     source = "assets"
     target = "assets"
@@ -110,11 +100,11 @@ defaultContentLanguageInSubdir = false
   writeStats = true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# OUTPUT FORMATS
+# OUTPUT FORMATS — JSON removed from section to eliminate layout warnings
 # ─────────────────────────────────────────────────────────────────────────────
 [outputs]
   home    = ["HTML", "JSON"]
-  section = ["HTML", "JSON"]
+  section = ["HTML"]
   page    = ["HTML"]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -123,7 +113,7 @@ defaultContentLanguageInSubdir = false
 [params]
 
   # ── hugo-book theme settings ──────────────────────────────────────────────
-  BookTheme            = "auto"
+  BookTheme            = "dark"
   BookToC              = true
   BookFlatSection      = false
   BookSearch           = true

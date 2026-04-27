@@ -1,18 +1,22 @@
 {{ define "main" }}
 
-{{/* ── Newspaper header ─────────────────────────────────────────────────── */}}
+{{/* ── Newspaper masthead ───────────────────────────────────────────────── */}}
 <div class="newspaper-header" style="
-  border-bottom: 3px double var(--body-font-color, #222);
+  border-bottom: 3px double var(--body-font-color, #e0e0e0);
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   text-align: center;
 ">
   {{ with .Params.publication }}
-  <div style="font-family: 'Times New Roman', serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.05em;">
-    {{ . }}
-  </div>
+  <div style="
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--body-font-color, #e0e0e0);
+  ">{{ . }}</div>
   {{ end }}
-  <div style="font-size: 0.75rem; opacity: 0.7; margin: 0.25rem 0;">
+  <div style="font-size: 0.75rem; color: var(--muted, rgba(224,224,224,0.5)); margin: 0.25rem 0;">
     {{ with .Params.location }}{{ . }}{{ end }}
     {{ with .Params.volume }} · Vol. {{ . }}{{ end }}
     {{ with .Params.issue }} No. {{ . }}{{ end }}
@@ -21,7 +25,7 @@
   </div>
 </div>
 
-{{/* ── Cover page — embedded inline ────────────────────────────────────── */}}
+{{/* ── Cover PDF — embedded iframe ─────────────────────────────────────── */}}
 {{ with .Params.pdf_cover }}
 <div class="pdf-viewer" style="margin: 1.5rem 0;">
   <iframe
@@ -29,7 +33,7 @@
     width="100%"
     style="height: 80vh; min-height: 500px; border: none; border-radius: 4px;"
     loading="lazy"
-    title="Cover page"
+    title="Front page"
   >
     <p>PDF cannot be displayed inline.
       <a href="{{ . }}" target="_blank" rel="noopener">Open in new tab ↗</a>
@@ -38,13 +42,18 @@
 </div>
 {{ end }}
 
-{{/* ── Remaining pages — linked, not embedded ──────────────────────────── */}}
+{{/* ── Remaining pages — linked pills ──────────────────────────────────── */}}
 {{ with .Params.pdf_pages }}
 <div style="margin: 2rem 0;">
-  <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 1rem;">
-    All Pages — {{ len . }} remaining
-  </h2>
-  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+  <h2 style="
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted, rgba(224,224,224,0.5));
+    margin-bottom: 1rem;
+  ">All Pages &mdash; {{ len . }} remaining</h2>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
     {{ range $i, $url := . }}
     <a
       href="{{ $url }}"
@@ -52,57 +61,76 @@
       rel="noopener"
       style="
         display: inline-block;
-        padding: 0.3rem 0.75rem;
-        border: 1px solid var(--gray-200, #e5e7eb);
+        padding: 0.25rem 0.6rem;
+        border: 1px solid var(--card-border, #242424);
         border-radius: 4px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        font-family: 'Roboto Mono', 'JetBrains Mono', monospace;
         text-decoration: none;
-        color: inherit;
-        font-family: 'JetBrains Mono', monospace;
+        color: var(--body-font-color, #e0e0e0);
+        background: var(--card-background, #111);
+        transition: border-color 0.12s, color 0.12s;
       "
+      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.color='var(--brand-color,#f5c518)'"
+      onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.color='var(--body-font-color,#e0e0e0)'"
       title="{{ $url }}"
     >p{{ add $i 2 }}</a>
     {{ end }}
   </div>
-  <p style="font-size: 0.75rem; opacity: 0.5; margin-top: 0.75rem;">
+
+  <p style="font-size: 0.72rem; color: var(--muted, rgba(224,224,224,0.5)); margin-top: 0.6rem;">
     Each page opens as a direct PDF in a new tab.
   </p>
 </div>
 {{ end }}
 
-{{/* ── Articles in this bundle ─────────────────────────────────────────── */}}
+{{/* ── Article cards ────────────────────────────────────────────────────── */}}
 {{ if .Pages }}
 <div style="margin-top: 2.5rem;">
-  <h2 style="font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 1rem;">
-    Articles in this Edition
-  </h2>
-  <div style="display: grid; gap: 1rem;">
+  <h2 style="
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted, rgba(224,224,224,0.5));
+    margin-bottom: 1rem;
+  ">Articles in this Edition</h2>
+
+  <div style="display: grid; gap: 0.75rem;">
     {{ range .Pages }}
-    {{ $article := . }}
-    <a href="{{ $article.Permalink }}" style="
+    <a href="{{ .Permalink }}" style="
       display: block;
-      padding: 1rem 1.25rem;
-      border: 1px solid var(--gray-200, #e5e7eb);
+      padding: 0.9rem 1.1rem;
+      border: 1px solid var(--card-border, #242424);
       border-radius: 6px;
       text-decoration: none;
-      color: inherit;
-    ">
-      <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
-        {{ $article.Title }}
+      color: var(--body-font-color, #e0e0e0);
+      background: var(--card-background, #111);
+      transition: border-color 0.12s, background 0.12s;
+    "
+      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+      onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+    >
+      <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem;">
+        {{ .Title }}
       </div>
-      {{ if or $article.Params.byline $article.Params.page }}
-      <div style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 0.4rem;">
-        {{ with $article.Params.byline }}By {{ . }}{{ end }}
-        {{ with $article.Params.page }} · Page {{ . }}{{ end }}
+      {{ if or .Params.byline .Params.page }}
+      <div style="font-size: 0.74rem; color: var(--muted, rgba(224,224,224,0.5)); margin-bottom: 0.35rem;">
+        {{ with .Params.byline }}By {{ . }}{{ end }}
+        {{ with .Params.page }} · Page {{ . }}{{ end }}
       </div>
       {{ end }}
-      {{ with $article.Params.summary }}
-      <div style="font-size: 0.875rem; opacity: 0.8;">{{ . }}</div>
+      {{ with .Params.summary }}
+      <div style="font-size: 0.875rem; color: rgba(224,224,224,0.75);">{{ . }}</div>
       {{ end }}
     </a>
     {{ end }}
   </div>
 </div>
+{{ end }}
+
+{{/* ── Markdown body (if any) ───────────────────────────────────────────── */}}
+{{ with .Content }}
+<div style="margin-top: 2rem;">{{ . }}</div>
 {{ end }}
 
 {{ end }}

@@ -1,0 +1,19 @@
+---
+title: "FTAI Stock Price, Quote & Analysis"
+symbol: "FTAI"
+slug: "ftai"
+date: "2026-04-22"
+description: "Live FTAI stock price, fundamentals, performance metrics, and analysis."
+sectors: ["-"]
+params:
+  symbol: "FTAI"
+  last_price: "338.9"
+  last_change: "-3.62%"
+  market_cap: "23.40B"
+  sector: "-"
+---
+
+## FTAI — Live Stock Data
+
+Current price, P/E ratio, earnings, revenue, and technical indicators for **FTAI**
+are loaded live from our database. Data refreshes every 60 seconds.
