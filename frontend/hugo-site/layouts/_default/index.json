@@ -1,1 +1,12 @@
-{{ dict "title" .Title "url" .Permalink "description" .Description "date" .Date | jsonify }}
+{{- $pages := slice -}}
+{{- range .Site.RegularPages -}}
+  {{- if and (ne .Section "stocks") (gt .Date.Year 1000) -}}
+    {{- $p := dict
+      "title"     .Title
+      "permalink" .Permalink
+      "date"      (.Date.Format "2006-01-02")
+    -}}
+    {{- $pages = $pages | append $p -}}
+  {{- end -}}
+{{- end -}}
+{{- $pages | jsonify -}}

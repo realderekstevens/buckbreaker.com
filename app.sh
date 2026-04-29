@@ -57,7 +57,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default values (now all absolute and correct)
-DEFAULT_PSQL_DB="yourstockforecast"
+DEFAULT_PSQL_DB="traderdude"
 DEFAULT_PSQL_USER="postgres"
 DEFAULT_SITE_DIR="/home/dude/Documents/GitHub/YourStockForecast"
 DEFAULT_EXPORT_DIR="/home/dude/Documents/GitHub/YourStockForecast/data/historical"

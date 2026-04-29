@@ -113,7 +113,7 @@ defaultContentLanguageInSubdir = false
 [params]
 
   # ── hugo-book theme settings ──────────────────────────────────────────────
-  BookTheme            = "dark"
+  BookTheme            = "light"
   BookToC              = true
   BookFlatSection      = false
   BookSearch           = true

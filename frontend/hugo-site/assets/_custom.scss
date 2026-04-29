@@ -1,307 +1,206 @@
 // =============================================================================
-// _custom.scss — YourStockForecast dark theme
-// Place at: frontend/hugo-site/assets/_custom.scss
-//
-// Design reference: localhost:1313/1963/11/22/ (the working newspaper layout)
-// Overrides hugo-book CSS variables + adds newspaper/stock UI components.
+// YourStockForecast — _custom.scss
+// Uses hugo-book's REAL variable names so overrides actually apply.
+// hugo-book vars: --body-background, --body-font-color, --color-link, --gray-*
 // =============================================================================
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CSS custom properties
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Financial colour tokens (new, don't conflict with book) ──────────────────
 :root {
-  --body-background:   #000000;
-  --menu-background:   #0d0d0d;
-  --header-background: #0a0a0a;
-  --card-background:   #111111;
-  --card-border:       #242424;
-  --input-background:  #161616;
-
-  --body-font-color:   #e0e0e0;
-  --muted:             rgba(224, 224, 224, 0.5);
-
-  --brand-color:       #f5c518;
-  --color-link:        #6aabf7;
-  --color-link-hover:  #99c8ff;
-
-  // hugo-book overrides
-  --hint-color-info:    rgba(106, 171, 247, 0.12);
-  --hint-color-warning: rgba(245, 197, 24, 0.12);
-  --hint-color-danger:  rgba(239, 68, 68, 0.12);
-  --hint-color-ok:      rgba(52, 211, 153, 0.12);
-  --gray-100:           #141414;
-  --gray-200:           #222222;
-  --gray-500:           #777777;
-
-  --newsprint-font: 'Georgia', 'Times New Roman', Times, serif;
-  --ui-font:        system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-
-  --color-gain: #34d399;
-  --color-loss: #f87171;
+  --fin-gain:        #2d6a4f;
+  --fin-gain-bg:     #d8f3dc;
+  --fin-loss:        #9b2226;
+  --fin-loss-bg:     #ffe0e0;
+  --fin-accent:      #1971c2;
+  --fin-accent-soft: #e7f5ff;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Base
-// ─────────────────────────────────────────────────────────────────────────────
-html, body {
-  background-color: var(--body-background) !important;
-  color: var(--body-font-color) !important;
+[data-theme="dark"] {
+  --fin-gain:        #52b788;
+  --fin-gain-bg:     #1b4332;
+  --fin-loss:        #f08080;
+  --fin-loss-bg:     #4a1219;
+  --fin-accent:      #74c0fc;
+  --fin-accent-soft: #1c3a5e;
 }
 
-a {
-  color: var(--color-link);
-  text-decoration: none;
-  &:hover { color: var(--color-link-hover); text-decoration: underline; }
-}
+// ── Header nav ──────────────────────────────────────────────────────────────
+.book-header {
+  gap: 1.25rem;
 
-h1, h2, h3, h4, h5, h6 { color: var(--body-font-color); }
+  nav > ul {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    flex-wrap: nowrap;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// hugo-book components
-// ─────────────────────────────────────────────────────────────────────────────
+    a {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: background 0.12s, color 0.12s;
 
-.book-menu {
-  background: var(--menu-background) !important;
-  border-right: 1px solid var(--card-border) !important;
-
-  nav a {
-    color: var(--body-font-color) !important;
-    &:hover, &.active {
-      color: var(--brand-color) !important;
-      background: rgba(245, 197, 24, 0.06) !important;
+      &:hover, &.active {
+        background: rgba(25, 113, 194, 0.09);
+        color: var(--fin-accent);
+        text-decoration: none;
+      }
     }
   }
-  nav h2, nav h3, nav span { color: var(--muted) !important; }
 }
 
-.book-header {
-  background: var(--header-background) !important;
-  border-bottom: 1px solid var(--card-border) !important;
-  label, a { color: var(--body-font-color) !important; }
+// ── Stat cards ───────────────────────────────────────────────────────────────
+.ysf-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.book-page { background: var(--body-background) !important; }
+.ysf-stat-card {
+  background: var(--body-background);
+  border: 1px solid var(--gray-200, #dee2e6);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
 
-.book-toc {
-  background: var(--body-background) !important;
-  border-left: 1px solid var(--card-border) !important;
-  nav a {
-    color: var(--muted) !important;
-    &:hover { color: var(--body-font-color) !important; }
-    &.active { color: var(--brand-color) !important; }
+  .label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-500, #6c757d);
+    margin-bottom: 0.3rem;
+  }
+
+  .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--body-font-color);
+  }
+
+  .delta {
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-.book-search input {
-  background: var(--input-background) !important;
-  border: 1px solid var(--card-border) !important;
-  color: var(--body-font-color) !important;
-  &::placeholder { color: var(--muted) !important; }
-  &:focus { border-color: var(--brand-color) !important; outline: none !important; }
-}
-
-.book-footer {
-  border-top: 1px solid var(--card-border) !important;
-  color: var(--muted) !important;
-  a { color: var(--muted) !important; }
-}
-
-.book-hint {
-  border-left-width: 3px !important;
-  &.info    { background: var(--hint-color-info)    !important; }
-  &.warning { background: var(--hint-color-warning) !important; }
-  &.danger  { background: var(--hint-color-danger)  !important; }
-  &.ok      { background: var(--hint-color-ok)      !important; }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Code
-// ─────────────────────────────────────────────────────────────────────────────
-pre, code {
-  background: #0f0f0f !important;
-  border: 1px solid var(--card-border) !important;
-  color: #c9d1d9 !important;
-}
-pre code { border: none !important; }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tables
-// ─────────────────────────────────────────────────────────────────────────────
-table { border-color: var(--card-border) !important; }
-thead tr { background: var(--card-background) !important; border-color: var(--card-border) !important; }
-th, td { border-color: var(--card-border) !important; color: var(--body-font-color) !important; }
-tr:nth-child(even) td { background: rgba(255,255,255,0.02) !important; }
-tr:hover td { background: rgba(245, 197, 24, 0.04) !important; }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Misc
-// ─────────────────────────────────────────────────────────────────────────────
-blockquote {
-  border-left: 3px solid var(--brand-color) !important;
-  color: var(--muted) !important;
-  background: var(--card-background) !important;
-}
-hr { border-color: var(--card-border) !important; }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// NEWSPAPER layout — mirrors 1963/11/22 design
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Masthead double-rule header
-.newspaper-header {
-  border-bottom-color: var(--body-font-color) !important;
-  > div:first-child { font-family: var(--newsprint-font); color: var(--body-font-color); }
-  > div:nth-child(2) { color: var(--muted); }
-}
-
-// PDF iframe container
-.pdf-viewer {
-  border: 1px solid var(--card-border);
-  border-radius: 4px;
+// ── Panels (gainers / losers / volume) ───────────────────────────────────────
+.ysf-panel {
+  background: var(--body-background);
+  border: 1px solid var(--gray-200, #dee2e6);
+  border-radius: 6px;
   overflow: hidden;
-  background: #0a0a0a;
-  iframe { display: block; border: none !important; }
-}
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  margin-bottom: 1.25rem;
 
-// Page-link pills (p2, p3, p4…)
-a[href$=".pdf"] {
-  background: var(--card-background) !important;
-  border: 1px solid var(--card-border) !important;
-  color: var(--body-font-color) !important;
-  font-family: 'Roboto Mono', monospace !important;
-  transition: border-color 0.12s, color 0.12s !important;
-  text-decoration: none !important;
-  &:hover {
-    border-color: var(--brand-color) !important;
-    color: var(--brand-color) !important;
-    text-decoration: none !important;
-  }
-}
-
-// Article card links inside the "Articles in this Edition" section
-// (These are plain <a> tags with inline style="border: 1px solid …")
-.book-page a[style*="border"] {
-  background: var(--card-background) !important;
-  border-color: var(--card-border) !important;
-  color: var(--body-font-color) !important;
-  transition: border-color 0.12s, background 0.12s !important;
-  text-decoration: none !important;
-
-  &:hover {
-    border-color: var(--brand-color) !important;
-    background: #161616 !important;
-    text-decoration: none !important;
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: var(--gray-100, #f8f9fa);
+    border-bottom: 1px solid var(--gray-200, #dee2e6);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-600, #6c757d);
   }
 
-  > div:first-child  { color: var(--body-font-color) !important; }
-  > div:nth-child(2) { color: var(--muted) !important; }
-  > div:nth-child(3) { color: rgba(224, 224, 224, 0.75) !important; }
+  .dot-gain { width:8px; height:8px; border-radius:50%; background:var(--fin-gain); flex-shrink:0; }
+  .dot-loss { width:8px; height:8px; border-radius:50%; background:var(--fin-loss); flex-shrink:0; }
+  .dot-vol  { width:8px; height:8px; border-radius:50%; background:var(--fin-accent); flex-shrink:0; }
 }
 
-// Article detail page
-.article-header {
-  a { color: var(--muted) !important; &:hover { color: var(--body-font-color) !important; } }
-  h1 { font-family: var(--newsprint-font); color: var(--body-font-color) !important; }
-  > div[style*="border-top"] {
-    border-top-color: var(--card-border) !important;
-    border-bottom-color: var(--card-border) !important;
-    color: var(--muted) !important;
-  }
-  > p[style*="border-left"] {
-    border-left-color: var(--color-link) !important;
-    color: var(--muted) !important;
-  }
-}
-
-.article-body {
-  font-family: var(--newsprint-font);
-  color: var(--body-font-color);
-  line-height: 1.85;
-}
-
-// Tags
-.book-page a[href*="/tags/"] {
-  border-color: var(--card-border) !important;
-  color: var(--muted) !important;
-  &:hover { border-color: var(--brand-color) !important; color: var(--brand-color) !important; }
-}
-
-// Section headers inside newspaper layouts (ALL PAGES, ARTICLES IN THIS EDITION)
-h2[style*="text-transform: uppercase"] {
-  color: var(--muted) !important;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dashboard / stock components
-// ─────────────────────────────────────────────────────────────────────────────
-.stat-card {
-  background: var(--card-background) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 8px !important;
-  color: var(--body-font-color) !important;
-  &.positive { border-left: 3px solid var(--color-gain) !important; }
-  &.negative { border-left: 3px solid var(--color-loss) !important; }
-}
-
-.change-positive, .gainer { color: var(--color-gain) !important; }
-.change-negative, .loser  { color: var(--color-loss) !important; }
-
-.screener-table {
+// ── Tables ───────────────────────────────────────────────────────────────────
+.book-page table, .markdown table, .ysf-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
 
   th {
-    background: var(--card-background) !important;
-    color: var(--muted) !important;
-    font-size: 0.75rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
-    padding: 0.6rem 1rem !important;
-    border-bottom: 1px solid var(--card-border) !important;
-    cursor: pointer;
-    &:hover { color: var(--brand-color) !important; }
+    padding: 0.55rem 0.9rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-600, #6c757d);
+    border-bottom: 2px solid var(--gray-200, #dee2e6);
+    text-align: left;
+    white-space: nowrap;
+    &.num { text-align: right; }
   }
 
   td {
-    padding: 0.5rem 1rem !important;
-    border-bottom: 1px solid var(--card-border) !important;
-    font-size: 0.875rem !important;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--gray-200, #dee2e6);
+    vertical-align: middle;
+    &.num { text-align: right; }
   }
 
-  tr:hover td { background: rgba(245, 197, 24, 0.03) !important; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-100, #f8f9fa); }
+
+  .sym {
+    font-family: var(--monospace-font, monospace);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--fin-accent);
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  }
 }
 
-// Nav bar
-.site-nav, header nav {
-  background: #000 !important;
-  border-bottom: 1px solid var(--card-border) !important;
+// ── Gain / loss ──────────────────────────────────────────────────────────────
+.gain, .text-gain, .positive { color: var(--fin-gain) !important; font-weight: 600; }
+.loss, .text-loss, .negative { color: var(--fin-loss) !important; font-weight: 600; }
+
+.badge-gain {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.45rem; border-radius: 3px;
+  font-size: 0.8125rem; font-weight: 600;
+  background: var(--fin-gain-bg); color: var(--fin-gain);
+}
+.badge-loss {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.45rem; border-radius: 3px;
+  font-size: 0.8125rem; font-weight: 600;
+  background: var(--fin-loss-bg); color: var(--fin-loss);
 }
 
-// Sign In button
-.btn-signin {
-  border: 1px solid var(--card-border) !important;
-  background: transparent !important;
-  color: var(--body-font-color) !important;
-  border-radius: 4px !important;
-  padding: 0.25rem 0.75rem !important;
-  cursor: pointer !important;
-  &:hover { border-color: var(--brand-color) !important; color: var(--brand-color) !important; }
+// ── Error states ─────────────────────────────────────────────────────────────
+.alert-danger, [class*="error"], [class*="failed"] {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  background: var(--fin-loss-bg);
+  border-left: 3px solid var(--fin-loss);
+  border-radius: 0 4px 4px 0;
+  color: var(--fin-loss);
+  font-size: 0.8125rem;
+  margin: 0.75rem 1rem;
 }
 
-.search-symbol {
-  background: var(--input-background) !important;
-  border: 1px solid var(--card-border) !important;
-  color: var(--body-font-color) !important;
-  border-radius: 4px !important;
-  &::placeholder { color: var(--muted) !important; }
-  &:focus { border-color: var(--brand-color) !important; outline: none !important; }
+// ── Shimmer skeleton ─────────────────────────────────────────────────────────
+@keyframes ysf-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Scrollbars & selection
-// ─────────────────────────────────────────────────────────────────────────────
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--body-background); }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; &:hover { background: #3a3a3a; } }
-
-::selection { background: rgba(245, 197, 24, 0.2); color: #fff; }
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--gray-100, #f8f9fa) 25%,
+    var(--gray-200, #e9ecef) 50%,
+    var(--gray-100, #f8f9fa) 75%
+  );
+  background-size: 200% 100%;
+  animation: ysf-shimmer 1.5s infinite;
+  border-radius: 4px;
+  color: transparent !important;
+  min-height: 1rem;
+}

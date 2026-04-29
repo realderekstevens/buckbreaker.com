@@ -20,7 +20,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-HUGO_SITE="${PROJECT_ROOT}/hugo_site"
+HUGO_SITE="${PROJECT_ROOT}/frontend/hugo-site"
 PYTHON="${PYTHON:-python3}"
 
 # ── VPS deployment config ──────────────────────────────────────────────────────
