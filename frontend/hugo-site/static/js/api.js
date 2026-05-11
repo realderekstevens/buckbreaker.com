@@ -197,7 +197,13 @@ const YSF = (() => {
   // ── Utility helpers ────────────────────────────────────────────────────────
   const fmt = {
     price:   v => v != null ? `$${parseFloat(v).toFixed(2)}` : '—',
-    pct:     v => v != null ? `${parseFloat(v).toFixed(2)}%` : '—',
+    pct: v => {
+      if (v == null) return '—';
+      const n = parseFloat(String(v).replace('%', '').trim());
+      if (isNaN(n)) return '—';
+      const cls = n >= 0 ? 'pos' : 'neg';
+      return `<span class="${cls}">${n >= 0 ? '+' : ''}${n.toFixed(2)}%</span>`;
+    },
     mcap:    v => {
       if (v == null) return '—';
       const n = parseFloat(v);
@@ -209,7 +215,7 @@ const YSF = (() => {
     vol:     v => v != null ? parseInt(v).toLocaleString() : '—',
     chgClass: v => {
       if (v == null) return '';
-      return parseFloat(v) >= 0 ? 'pos' : 'neg';
+      return parseFloat(String(v).replace('%', '').trim()) >= 0 ? 'pos' : 'neg';
     }
   };
 
