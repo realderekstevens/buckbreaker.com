@@ -85,25 +85,48 @@
       <a class="sidebar-link{{ if eq .RelPermalink "/sectors/" }} active{{ end }}" href="/sectors">Sectors</a>
 
       {{/* ── Newspaper archive grouped by year ──────────────────────────── */}}
-      {{/* Efficient: use .Site.Sections to find only dated sections,        */}}
-      {{/* never touching stock pages. Sections are pre-indexed by Hugo.     */}}
       <div class="sidebar-heading" style="margin-top:.75rem">Newspaper Archive</div>
 
-      {{/* Grab only pages that have a real date and aren't in stocks/ */}}
-      {{ $archivePages := where (where .Site.RegularPages "Section" "ne" "stocks") ".Date.Year" "gt" 1 }}
-      {{ $archivePages  = sort $archivePages "Date" "desc" }}
+      {{/* Build the archive page list:
+           - exclude stocks (too many, unrelated)
+           - exclude docs (documentation pages, not archive)
+           - require a real date (Year > 1 filters out undated pages)
+           - sort newest year first                                          */}}
+      {{ $archivePages := .Site.RegularPages }}
+      {{ $archivePages  = where $archivePages "Section" "ne" "stocks" }}
+      {{ $archivePages  = where $archivePages "Section" "ne" "docs" }}
+      {{ $archivePages  = where $archivePages ".Date.Year" "gt" 1 }}
+      {{ $archivePages  = sort  $archivePages "Date" "desc" }}
 
-      {{/* Group by year using Hugo's built-in group */}}
+      {{/* The year of the page currently being viewed — used to auto-open
+           the matching <details> so navigating to 1929 keeps 1929 open,
+           and 1963 keeps 1963 open. Falls back to "" on undated pages.    */}}
+      {{ $currentYear := "" }}
+      {{ if gt .Date.Year 1 }}{{ $currentYear = .Date.Format "2006" }}{{ end }}
+
       {{ range ($archivePages.GroupByDate "2006") }}
-        <details class="sidebar-year">
+
+        {{/* Check whether any page in this year group is the current page.
+             This catches the case where $.Date isn't set (e.g. section pages)
+             but the URL still lives inside a year folder.                   */}}
+        {{ $yearOpen := eq .Key $currentYear }}
+        {{ if not $yearOpen }}
+          {{ range .Pages }}
+            {{ if eq $.RelPermalink .RelPermalink }}{{ $yearOpen = true }}{{ end }}
+          {{ end }}
+        {{ end }}
+
+        <details class="sidebar-year"{{ if $yearOpen }} open{{ end }}>
           <summary>{{ .Key }}</summary>
           {{ range .Pages }}
             <a class="sidebar-link{{ if eq $.RelPermalink .RelPermalink }} active{{ end }}"
-               href="{{ .RelPermalink }}">
-              {{ .Date.Format "Jan 02" }}{{ with .Title }} — {{ . | truncate 28 }}{{ end }}
+               href="{{ .RelPermalink }}"
+               title="{{ .Title }}">
+              {{ .Date.Format "Jan 02" }}{{ with .Title }} — {{ . | truncate 30 }}{{ end }}
             </a>
           {{ end }}
         </details>
+
       {{ end }}
 
     </aside>
