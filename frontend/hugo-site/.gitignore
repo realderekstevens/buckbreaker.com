@@ -16,7 +16,6 @@
 # Go workspace file
 go.work
 
-themes
 *.pdf
 public
 resources
