@@ -5021,6 +5021,7 @@ ysf_menu() {
             "Test API — top gainers" \
             "── Content Management ──" \
             "Count Stock Pages Generated" \
+            "Generate content.en/ Page Stubs" \
             "List Most Recent Scrape Data" \
             "Open Hugo Config" \
             "── VPS Deployment ──" \
@@ -5084,7 +5085,7 @@ ysf_menu() {
             "Generate Stock Page Stubs Only")
                 local gen="${ysf_dir}/scripts/generate_hugo_data.py"
                 [[ ! -f "$gen" ]] && { error "generate_hugo_data.py not found: $gen"; pause; continue; }
-                info "Generating content/stocks/*.md stubs…"
+                info "Generating content.en/stocks/*.md stubs…"
                 YSF_DIR="${ysf_dir}" YSF_DB="${PSQL_DB}" YSF_USER="${PSQL_USER}" python3 "$gen" --pages-only
                 success "Stock page stubs generated." ;;
 
@@ -5219,13 +5220,16 @@ SQL
 
             # ── CONTENT MANAGEMENT ────────────────────────────────────────────
             "Count Stock Pages Generated")
-                local stocks_dir="${ysf_dir}/frontend/hugo-site/content/stocks"
+                local stocks_dir="${ysf_dir}/frontend/hugo-site/content.en/stocks"
                 if [[ -d "$stocks_dir" ]]; then
                     local cnt; cnt=$(find "$stocks_dir" -name "*.md" | wc -l | tr -d ' ')
                     success "${cnt} stock page stubs in ${stocks_dir}"
                 else
                     warn "Stocks content directory not found. Run 'Bootstrap' or 'Generate Stubs'."
                 fi ;;
+
+            "Generate content.en/ Page Stubs")
+                ysf_generate_content_stubs ;;
 
             "List Most Recent Scrape Data")
                 echo
@@ -5352,6 +5356,70 @@ SQL
     done
 }
 
+# ── Generate top-level content.en/ page stubs ─────────────────────────────────
+# Creates gainers.md, losers.md, screener.md, sectors.md, about.md in content.en/
+# Safe to re-run — skips any file that already exists.
+ysf_generate_content_stubs() {
+    section_header "📄 Generate content.en/ Page Stubs"
+    local ysf_dir; ysf_dir="${SCRIPT_DIR}"
+    local content_dir="${ysf_dir}/frontend/hugo-site/content.en"
+
+    mkdir -p "$content_dir"
+
+    declare -A stubs
+    stubs["gainers.md"]='---
+title: "Top Gainers"
+layout: "gainers"
+description: "Top gaining stocks today by percentage change."
+---'
+
+    stubs["losers.md"]='---
+title: "Top Losers"
+layout: "losers"
+description: "Top losing stocks today by percentage change."
+---'
+
+    stubs["screener.md"]='---
+title: "Stock Screener"
+layout: "screener"
+description: "Filter and screen stocks by fundamentals, technicals, and more."
+---'
+
+    stubs["sectors.md"]='---
+title: "Sector Performance"
+layout: "sectors"
+description: "Stock market performance broken down by sector."
+---'
+
+    stubs["about.md"]='---
+title: "About YourStockForecast"
+description: "Free stock data, screening, and analysis powered by Finviz."
+---
+
+YourStockForecast provides free stock market data, daily gainers and losers,
+sector performance, and a stock screener — all powered by a local Finviz
+dataminer and served via PostgREST.
+'
+
+    local created=0 skipped=0
+    for fname in "${!stubs[@]}"; do
+        local fpath="${content_dir}/${fname}"
+        if [[ -f "$fpath" ]]; then
+            info "  Skipped (exists): ${fname}"
+            (( skipped++ ))
+        else
+            echo "${stubs[$fname]}" > "$fpath"
+            success "  Created: content.en/${fname}"
+            (( created++ ))
+        fi
+    done
+
+    echo
+    success "Done — ${created} created, ${skipped} already existed."
+    info "Files are in: ${content_dir}"
+    info "To overwrite existing stubs, delete them first then re-run."
+}
+
 # ── Bootstrap: create the full YSF project skeleton ───────────────────────────
 ysf_bootstrap() {
     section_header "🚀 Bootstrap YourStockForecast.com"
@@ -5374,8 +5442,8 @@ ysf_bootstrap() {
     info "Creating directories…"
     for d in backend/scraper backend/historical backend/api backend/sql backend/logs \
               data/tickers data/pdfs data/historical \
-              frontend/hugo-site/content/stocks frontend/hugo-site/content/sectors \
-              frontend/hugo-site/content/market frontend/hugo-site/layouts/_default \
+              frontend/hugo-site/content.en/stocks frontend/hugo-site/content.en/sectors \
+              frontend/hugo-site/content.en/market frontend/hugo-site/layouts/_default \
               frontend/hugo-site/layouts/partials frontend/hugo-site/static/js \
               frontend/hugo-site/static/css frontend/hugo-site/data \
               frontend/flutter-app docs scripts nginx systemd .github/workflows; do

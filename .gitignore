@@ -36,3 +36,5 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+frontend/hugo-site/content.en/stocks/*

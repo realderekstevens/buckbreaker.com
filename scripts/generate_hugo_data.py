@@ -6,7 +6,7 @@ Runs BEFORE `hugo build` to pre-populate:
   1. frontend/hugo-site/data/snapshot.json
   2. frontend/hugo-site/data/sectors.json
   3. frontend/hugo-site/data/search_index.json
-  4. frontend/hugo-site/content/stocks/*.md
+  4. frontend/hugo-site/content.en/stocks/*.md
 
 Usage:
     python3 scripts/generate_hugo_data.py
@@ -36,7 +36,7 @@ except ImportError:
 DB         = dict(dbname="traderdude", user="postgres", host="localhost", port=5432)
 SITE_ROOT  = Path(__file__).resolve().parent.parent / "frontend" / "hugo-site"
 DATA_DIR   = SITE_ROOT / "data"
-STOCKS_DIR = SITE_ROOT / "content" / "stocks"
+STOCKS_DIR = SITE_ROOT / "content.en" / "stocks"
 
 # ── DB helpers ─────────────────────────────────────────────────────────────────
 
@@ -229,7 +229,7 @@ def gen_sectors():
 # ── Stock page stubs ───────────────────────────────────────────────────────────
 
 def gen_stock_pages():
-    print("Generating content/stocks/*.md …")
+    print("Generating content.en/stocks/*.md …")
     rows = fetch("""
         SELECT DISTINCT ON (symbol)
             symbol,
