@@ -1,5 +1,5 @@
 ---
-title: "October 4, 1929"
+title: "October 1929"
 date: "1929-10-04T00:00:00Z"
 type: newspaper
 layout: newspaper

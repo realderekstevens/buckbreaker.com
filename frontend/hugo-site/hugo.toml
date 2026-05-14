@@ -36,7 +36,7 @@ summaryLength = 70
 
   # Render pages from this content section as the left sidebar menu.
   # Your Markdown files should live in: content/docs/
-  BookSection = "docs"
+  BookSection = "*"
 
   # Enable the sidebar menu defined in content/menu/index.md
   # Set to "/menu" to activate — comment out to use automatic section menu

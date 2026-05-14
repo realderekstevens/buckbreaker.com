@@ -1,13 +1,94 @@
----
-title: "October 29, 1929"
-date: "1929-10-29T00:00:00Z"
-type: newspaper
-layout: newspaper
-publication: "The New York Times"
-pdf_cover: "/pdf/1929-10-29-01.pdf"
-pdf_pages:
-  - "/pdf/1929-10-29-03.pdf"
-  - "/pdf/1929-10-29-13.pdf"
-  - "/pdf/1929-10-29-14.pdf"
-  - "/pdf/1929-10-29-15.pdf"
++++
+title       = "October 29, 1929"
+date        = 1929-10-29T00:00:00-06:00
+draft       = false
+layout      = "newspaper"
+tags        = ["1929", "October", "Black Tuesday", "Stock Market Crash"]
+publication = "The Evening Star"
+edition     = "Extra"
+volume      = "111"
+issue       = "326"
+location    = "Washington, D.C."
++++
+
+# First PDF is embedded inline. The rest are linked below.
+pdf_cover = "/pdf/1929-11-29-01.pdf"
+
+pdf_pages = [
+  "/pdf/1963-11-22-02.pdf",
+  "/pdf/1963-11-22-03.pdf",
+  "/pdf/1963-11-22-04.pdf",
+  "/pdf/1963-11-22-05.pdf",
+  "/pdf/1963-11-22-06.pdf",
+  "/pdf/1963-11-22-07.pdf",
+  "/pdf/1963-11-22-08.pdf",
+  "/pdf/1963-11-22-09.pdf",
+  "/pdf/1963-11-22-10.pdf",
+  "/pdf/1963-11-22-11.pdf",
+  "/pdf/1963-11-22-12.pdf",
+  "/pdf/1963-11-22-13.pdf",
+  "/pdf/1963-11-22-14.pdf",
+  "/pdf/1963-11-22-15.pdf",
+  "/pdf/1963-11-22-16.pdf",
+  "/pdf/1963-11-22-17.pdf",
+  "/pdf/1963-11-22-18.pdf",
+  "/pdf/1963-11-22-19.pdf",
+  "/pdf/1963-11-22-20.pdf",
+  "/pdf/1963-11-22-21.pdf",
+  "/pdf/1963-11-22-22.pdf",
+  "/pdf/1963-11-22-23.pdf",
+  "/pdf/1963-11-22-24.pdf",
+  "/pdf/1963-11-22-25.pdf",
+  "/pdf/1963-11-22-26.pdf",
+  "/pdf/1963-11-22-27.pdf",
+  "/pdf/1963-11-22-28.pdf",
+  "/pdf/1963-11-22-29.pdf",
+  "/pdf/1963-11-22-30.pdf",
+  "/pdf/1963-11-22-31.pdf",
+  "/pdf/1963-11-22-32.pdf",
+  "/pdf/1963-11-22-33.pdf",
+  "/pdf/1963-11-22-34.pdf",
+  "/pdf/1963-11-22-35.pdf",
+  "/pdf/1963-11-22-36.pdf",
+  "/pdf/1963-11-22-37.pdf",
+  "/pdf/1963-11-22-38.pdf",
+  "/pdf/1963-11-22-39.pdf",
+  "/pdf/1963-11-22-40.pdf",
+  "/pdf/1963-11-22-41.pdf",
+  "/pdf/1963-11-22-42.pdf",
+  "/pdf/1963-11-22-43.pdf",
+  "/pdf/1963-11-22-44.pdf",
+  "/pdf/1963-11-22-45.pdf",
+  "/pdf/1963-11-22-46.pdf",
+  "/pdf/1963-11-22-47.pdf",
+  "/pdf/1963-11-22-48.pdf",
+  "/pdf/1963-11-22-49.pdf",
+  "/pdf/1963-11-22-50.pdf",
+  "/pdf/1963-11-22-51.pdf",
+  "/pdf/1963-11-22-52.pdf",
+  "/pdf/1963-11-22-53.pdf",
+  "/pdf/1963-11-22-54.pdf",
+  "/pdf/1963-11-22-55.pdf",
+  "/pdf/1963-11-22-56.pdf",
+  "/pdf/1963-11-22-57.pdf",
+  "/pdf/1963-11-22-58.pdf",
+  "/pdf/1963-11-22-59.pdf",
+  "/pdf/1963-11-22-60.pdf",
+  "/pdf/1963-11-22-61.pdf",
+  "/pdf/1963-11-22-62.pdf",
+  "/pdf/1963-11-22-63.pdf",
+  "/pdf/1963-11-22-64.pdf",
+  "/pdf/1963-11-22-65.pdf",
+  "/pdf/1963-11-22-66.pdf",
+  "/pdf/1963-11-22-67.pdf",
+  "/pdf/1963-11-22-68.pdf",
+  "/pdf/1963-11-22-69.pdf",
+  "/pdf/1963-11-22-70.pdf",
+  "/pdf/1963-11-22-71.pdf",
+  "/pdf/1963-11-22-72.pdf",
+  "/pdf/1963-11-22-73.pdf",
+  "/pdf/1963-11-22-74.pdf",
+  "/pdf/1963-11-22-75.pdf",
+  "/pdf/1963-11-22-76.pdf",
+]
 ---
