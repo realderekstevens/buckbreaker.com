@@ -40,9 +40,9 @@ pub_display_name() {
 }
 pub_location() {
     case "$1" in
-        time)   echo "New York, NY" ;;
-        nyt)    echo "New York, NY" ;;
-        *)      echo "New York, NY" ;;
+        time)   echo "New York, N.Y." ;;
+        nyt)    echo "New York, N.Y." ;;
+        *)      echo "New York, N.Y." ;;
     esac
 }
 pub_layout() {
@@ -145,15 +145,18 @@ echo "[ 2/3 ] Writing section _index.md for ${PUBLICATION}..."
 
 mkdir -p "$CONTENT_DIR"
 
+# Human-readable date title e.g. "October 28, 1929"
+TITLE_DATE=$(date -d "${DATE}" "+%B %-d, %Y")
+
 cat > "${CONTENT_DIR}/_index.md" <<EOF
 +++
-title       = "${PUBLICATION}"
+title       = "${TITLE_DATE}"
 date        = ${HUGO_DATE}
 draft       = false
 layout      = "${LAYOUT}"
 publication = "${PUBLICATION}"
 location    = "${LOCATION}"
-weight      = 1
+pdf_cover   = "/pdf/${PDF_PREFIX}-1.pdf"
 +++
 EOF
 
