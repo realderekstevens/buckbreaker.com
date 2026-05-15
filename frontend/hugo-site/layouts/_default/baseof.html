@@ -45,6 +45,61 @@
     .sidebar-year[open] > summary::before { transform: rotate(90deg); }
     .sidebar-year > summary:hover { background: var(--hover, rgba(255,255,255,.05)); color: var(--text1, #ddd); }
 
+    .sidebar-month {
+      margin: 1px 0 1px .5rem;
+    }
+    .sidebar-month > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: .3rem .5rem;
+      border-radius: 4px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: var(--text2, #999);
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      user-select: none;
+      text-transform: uppercase;
+    }
+    .sidebar-month > summary::-webkit-details-marker { display: none; }
+    .sidebar-month > summary::before {
+      content: '▶';
+      font-size: .5rem;
+      transition: transform .15s;
+      color: var(--text3, #555);
+    }
+    .sidebar-month[open] > summary::before { transform: rotate(90deg); }
+    .sidebar-month > summary:hover { background: var(--hover, rgba(255,255,255,.05)); color: var(--text1, #ddd); }
+
+    .sidebar-day {
+      margin: 1px 0 1px 1rem;
+    }
+    .sidebar-day > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: .28rem .5rem;
+      border-radius: 4px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text1, #ccc);
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      user-select: none;
+    }
+    .sidebar-day > summary::-webkit-details-marker { display: none; }
+    .sidebar-day > summary::before {
+      content: '▶';
+      font-size: .5rem;
+      transition: transform .15s;
+      color: var(--text3, #555);
+    }
+    .sidebar-day[open] > summary::before { transform: rotate(90deg); }
+    .sidebar-day > summary:hover { background: var(--hover, rgba(255,255,255,.05)); }
+    .sidebar-day .sidebar-paper { margin-left: .5rem; }
+    .sidebar-paper > summary { padding-left: 0.75rem; font-size: 0.8rem; }
     .sidebar-paper {
       margin: 1px 0 1px .75rem;
     }
@@ -157,26 +212,30 @@
       <a class="sidebar-link{{ if eq .RelPermalink "/screener/" }} active{{ end }}"     href="/screener">Screener</a>
       <a class="sidebar-link{{ if eq .RelPermalink "/sectors/"  }} active{{ end }}"     href="/sectors">Sectors</a>
 
-      {{/* ── Newspaper archive — Year ▶ Date ▶ Articles ─────────────────── */}}
+      {{/* ── Newspaper archive — Year ▶ Edition ▶ Articles ───────────────── */}}
       <div class="sidebar-heading" style="margin-top:.75rem">Newspaper Archive</div>
 
-      {{/* Collect only dated section _index.md pages (the newspaper editions).
-           Excludes stocks, docs, the site root, and undated pages.           */}}
-      {{ $editions := where .Site.Pages "Kind" "section" }}
-      {{ $editions  = where $editions "Section" "ne" "stocks" }}
-      {{ $editions  = where $editions "Section" "ne" "docs" }}
-      {{ $editions  = where $editions "Section" "ne" "" }}
+      {{/* Editions = pages with pdf_cover. GroupByDate requires a real Hugo
+           Pages type so we use `where` throughout (not append/slice).
+           Sub-pages like new-york-times/4/ also have pdf_cover, so we
+           filter them out inside the day loop by checking .Parent.Params.pdf_cover. */}}
+      {{ $editions := where .Site.Pages "Params.pdf_cover" "ne" nil }}
       {{ $editions  = where $editions ".Date.Year" "gt" 1 }}
-      {{ $editions  = sort  $editions "Date" "desc" }}
+      {{ $editions  = sort  $editions "Date" "asc" }}
 
-      {{/* Year of the page currently being viewed (for auto-opening). */}}
-      {{ $currentYear := "" }}
-      {{ if gt .Date.Year 1 }}{{ $currentYear = .Date.Format "2006" }}{{ end }}
+      {{/* Helpers for auto-opening the right year / month / day. */}}
+      {{ $currentYear  := "" }}
+      {{ $currentMonth := "" }}
+      {{ $currentDay   := "" }}
+      {{ if gt .Date.Year 1 }}
+        {{ $currentYear  = .Date.Format "2006" }}
+        {{ $currentMonth = .Date.Format "January 2006" }}
+        {{ $currentDay   = .Date.Format "January 2, 2006" }}
+      {{ end }}
 
-      {{ range ($editions.GroupByDate "2006") }}
-
-        {{/* Open this year if we're viewing a page inside it. */}}
-        {{ $yearOpen := eq .Key $currentYear }}
+      {{ range ($editions.GroupByDate "2006" "asc") }}
+        {{ $yearKey  := .Key }}
+        {{ $yearOpen := eq $yearKey $currentYear }}
         {{ if not $yearOpen }}
           {{ range .Pages }}
             {{ if or (eq $.RelPermalink .RelPermalink) (.IsAncestor $.Page) }}
@@ -186,37 +245,104 @@
         {{ end }}
 
         <details class="sidebar-year"{{ if $yearOpen }} open{{ end }}>
-          <summary>{{ .Key }}</summary>
+          <summary>{{ $yearKey }}</summary>
 
-          {{ range .Pages }}
-            {{/* Is the visitor on this edition or one of its articles? */}}
-            {{ $paperActive := eq $.RelPermalink .RelPermalink }}
-            {{ $paperOpen   := or $paperActive (.IsAncestor $.Page) }}
-
-            <details class="sidebar-paper"{{ if $paperOpen }} open{{ end }}>
-              <summary>
-                <a href="{{ .RelPermalink }}"
-                   class="{{ if $paperActive }}active{{ end }}"
-                   title="{{ .Title }}">
-                  {{ .Date.Format "Jan 02" }}
-                  {{- with .Params.publication }} · {{ . }}{{ end }}
-                </a>
-              </summary>
-
-              {{/* Individual articles nested under the edition */}}
+          {{ range (.Pages.GroupByDate "January 2006" "asc") }}
+            {{ $monthKey  := .Key }}
+            {{ $monthOpen := eq $monthKey $currentMonth }}
+            {{ if not $monthOpen }}
               {{ range .Pages }}
-                <a class="sidebar-article{{ if eq $.RelPermalink .RelPermalink }} active{{ end }}"
-                   href="{{ .RelPermalink }}"
-                   title="{{ .Title }}">
-                  {{ .Title | truncate 32 }}
-                </a>
+                {{ if or (eq $.RelPermalink .RelPermalink) (.IsAncestor $.Page) }}
+                  {{ $monthOpen = true }}
+                {{ end }}
               {{ end }}
+            {{ end }}
+
+            <details class="sidebar-month"{{ if $monthOpen }} open{{ end }}>
+              <summary>{{ $monthKey }}</summary>
+
+              {{/* Group by day. Within each day, skip pages whose parent
+                   also has pdf_cover (those are numbered sub-pages, not
+                   publication-level editions).                            */}}
+              {{ range (.Pages.GroupByDate "January 2, 2006" "asc") }}
+                {{ $dayKey := .Key }}
+
+                {{/* Filter to publication-level only */}}
+                {{ $dayEditions := slice }}
+                {{ range .Pages }}
+                  {{ if not .Parent.Params.pdf_cover }}
+                    {{ $dayEditions = $dayEditions | append . }}
+                  {{ end }}
+                {{ end }}
+
+                {{ if $dayEditions }}
+                  {{/* Auto-open this day if visitor is inside it. */}}
+                  {{ $dayOpen := eq $dayKey $currentDay }}
+                  {{ if not $dayOpen }}
+                    {{ range $dayEditions }}
+                      {{ if or (eq $.RelPermalink .RelPermalink) (.IsAncestor $.Page) }}
+                        {{ $dayOpen = true }}
+                      {{ end }}
+                    {{ end }}
+                  {{ end }}
+
+                  {{ if gt (len $dayEditions) 1 }}
+                    {{/* Multiple papers this day — day wrapper */}}
+                    <details class="sidebar-day"{{ if $dayOpen }} open{{ end }}>
+                      <summary>{{ (index $dayEditions 0).Date.Format "Jan 02" }}</summary>
+                      {{ range $dayEditions }}
+                        {{ $paperActive := eq $.RelPermalink .RelPermalink }}
+                        {{ $paperOpen   := or $paperActive (.IsAncestor $.Page) }}
+                        <details class="sidebar-paper"{{ if $paperOpen }} open{{ end }}>
+                          <summary>
+                            <a href="{{ .RelPermalink }}"
+                               class="{{ if $paperActive }}active{{ end }}"
+                               title="{{ .Params.publication }}">
+                              {{- with .Params.publication }}{{ . }}{{ else }}{{ .Title }}{{ end -}}
+                            </a>
+                          </summary>
+                          {{ range .Pages }}
+                            <a class="sidebar-article{{ if eq $.RelPermalink .RelPermalink }} active{{ end }}"
+                               href="{{ .RelPermalink }}" title="{{ .Title }}">
+                              {{ .Title | truncate 32 }}
+                            </a>
+                          {{ end }}
+                        </details>
+                      {{ end }}
+                    </details>
+
+                  {{ else }}
+                    {{/* Single paper this day — no wrapper needed */}}
+                    {{ range $dayEditions }}
+                      {{ $paperActive := eq $.RelPermalink .RelPermalink }}
+                      {{ $paperOpen   := or $paperActive (.IsAncestor $.Page) }}
+                      <details class="sidebar-paper"{{ if $paperOpen }} open{{ end }}>
+                        <summary>
+                          <a href="{{ .RelPermalink }}"
+                             class="{{ if $paperActive }}active{{ end }}"
+                             title="{{ .Title }}">
+                            {{ .Date.Format "Jan 02" }}
+                            {{- with .Params.publication }} · {{ . }}{{ end }}
+                          </a>
+                        </summary>
+                        {{ range .Pages }}
+                          <a class="sidebar-article{{ if eq $.RelPermalink .RelPermalink }} active{{ end }}"
+                             href="{{ .RelPermalink }}" title="{{ .Title }}">
+                            {{ .Title | truncate 32 }}
+                          </a>
+                        {{ end }}
+                      </details>
+                    {{ end }}
+
+                  {{ end }}
+                {{ end }}{{/* end if $dayEditions */}}
+              {{ end }}{{/* end day range */}}
 
             </details>
-          {{ end }}
-        </details>
+          {{ end }}{{/* end month range */}}
 
-      {{ end }}
+        </details>
+      {{ end }}{{/* end year range */}}
 
     </aside>
 

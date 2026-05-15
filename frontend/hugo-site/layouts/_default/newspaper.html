@@ -1,6 +1,6 @@
 {{ define "main" }}
 
-{{/* ── Newspaper masthead ───────────────────────────────────────────────── */}}
+{{/* ── Newspaper masthead ─────────────────────────────────────────────── */}}
 <div class="newspaper-header" style="
   border-bottom: 3px double var(--body-font-color, #e0e0e0);
   margin-bottom: 2rem;
@@ -15,6 +15,13 @@
     letter-spacing: 0.05em;
     color: var(--body-font-color, #e0e0e0);
   ">{{ . }}</div>
+  {{ else }}
+  <div style="
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--body-font-color, #e0e0e0);
+  ">{{ .Title }}</div>
   {{ end }}
   <div style="font-size: 0.75rem; color: var(--muted, rgba(224,224,224,0.5)); margin: 0.25rem 0;">
     {{ with .Params.location }}{{ . }}{{ end }}
@@ -25,110 +32,150 @@
   </div>
 </div>
 
-{{/* ── Cover PDF — embedded iframe ─────────────────────────────────────── */}}
-{{ with .Params.pdf_cover }}
-<div class="pdf-viewer" style="margin: 1.5rem 0;">
-  <iframe
-    src="{{ . }}#toolbar=1&navpanes=0&scrollbar=1&view=FitH"
-    width="100%"
-    style="height: 80vh; min-height: 500px; border: none; border-radius: 4px;"
-    loading="lazy"
-    title="Front page"
-  >
-    <p>PDF cannot be displayed inline.
-      <a href="{{ . }}" target="_blank" rel="noopener">Open in new tab ↗</a>
-    </p>
-  </iframe>
-</div>
-{{ end }}
+{{ if .Params.pdf_cover }}
 
-{{/* ── Remaining pages — linked pills ──────────────────────────────────── */}}
-{{ with .Params.pdf_pages }}
-<div style="margin: 2rem 0;">
-  <h2 style="
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted, rgba(224,224,224,0.5));
-    margin-bottom: 1rem;
-  ">All Pages &mdash; {{ len . }} remaining</h2>
+  {{/* ── Normal edition: has a cover PDF ─────────────────────────────── */}}
 
-  <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-    {{ range $i, $url := . }}
-    <a
-      href="{{ $url }}"
-      target="_blank"
-      rel="noopener"
-      style="
-        display: inline-block;
-        padding: 0.25rem 0.6rem;
-        border: 1px solid var(--card-border, #242424);
-        border-radius: 4px;
-        font-size: 0.78rem;
-        font-family: 'Roboto Mono', 'JetBrains Mono', monospace;
-        text-decoration: none;
-        color: var(--body-font-color, #e0e0e0);
-        background: var(--card-background, #111);
-        transition: border-color 0.12s, color 0.12s;
-      "
-      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.color='var(--brand-color,#f5c518)'"
-      onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.color='var(--body-font-color,#e0e0e0)'"
-      title="{{ $url }}"
-    >p{{ add $i 2 }}</a>
-    {{ end }}
-  </div>
-
-  <p style="font-size: 0.72rem; color: var(--muted, rgba(224,224,224,0.5)); margin-top: 0.6rem;">
-    Each page opens as a direct PDF in a new tab.
-  </p>
-</div>
-{{ end }}
-
-{{/* ── Article cards ────────────────────────────────────────────────────── */}}
-{{ if .Pages }}
-<div style="margin-top: 2.5rem;">
-  <h2 style="
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted, rgba(224,224,224,0.5));
-    margin-bottom: 1rem;
-  ">Articles in this Edition</h2>
-
-  <div style="display: grid; gap: 0.75rem;">
-    {{ range .Pages }}
-    <a href="{{ .Permalink }}" style="
-      display: block;
-      padding: 0.9rem 1.1rem;
-      border: 1px solid var(--card-border, #242424);
-      border-radius: 6px;
-      text-decoration: none;
-      color: var(--body-font-color, #e0e0e0);
-      background: var(--card-background, #111);
-      transition: border-color 0.12s, background 0.12s;
-    "
-      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
-      onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+  <div class="pdf-viewer" style="margin: 1.5rem 0;">
+    <iframe
+      src="{{ .Params.pdf_cover }}#toolbar=1&navpanes=0&scrollbar=1&view=FitH"
+      width="100%"
+      style="height: 80vh; min-height: 500px; border: none; border-radius: 4px;"
+      loading="lazy"
+      title="Front page"
     >
-      <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem;">
-        {{ .Title }}
-      </div>
-      {{ if or .Params.byline .Params.page }}
-      <div style="font-size: 0.74rem; color: var(--muted, rgba(224,224,224,0.5)); margin-bottom: 0.35rem;">
-        {{ with .Params.byline }}By {{ . }}{{ end }}
-        {{ with .Params.page }} · Page {{ . }}{{ end }}
-      </div>
-      {{ end }}
-      {{ with .Params.summary }}
-      <div style="font-size: 0.875rem; color: rgba(224,224,224,0.75);">{{ . }}</div>
-      {{ end }}
-    </a>
-    {{ end }}
+      <p>PDF cannot be displayed inline.
+        <a href="{{ .Params.pdf_cover }}" target="_blank" rel="noopener">Open in new tab ↗</a>
+      </p>
+    </iframe>
   </div>
-</div>
+
+  {{ with .Params.pdf_pages }}
+  <div style="margin: 2rem 0;">
+    <h2 style="
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted, rgba(224,224,224,0.5));
+      margin-bottom: 1rem;
+    ">All Pages &mdash; {{ len . }} remaining</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+      {{ range $i, $url := . }}
+      <a href="{{ $url }}" target="_blank" rel="noopener" style="
+          display: inline-block;
+          padding: 0.25rem 0.6rem;
+          border: 1px solid var(--card-border, #242424);
+          border-radius: 4px;
+          font-size: 0.78rem;
+          font-family: 'JetBrains Mono', monospace;
+          text-decoration: none;
+          color: var(--body-font-color, #e0e0e0);
+          background: var(--card-background, #111);
+          transition: border-color 0.12s, color 0.12s;
+        "
+        onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.color='var(--brand-color,#f5c518)'"
+        onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.color='var(--body-font-color,#e0e0e0)'"
+      >p{{ add $i 2 }}</a>
+      {{ end }}
+    </div>
+    <p style="font-size: 0.72rem; color: var(--muted, rgba(224,224,224,0.5)); margin-top: 0.6rem;">
+      Each page opens as a direct PDF in a new tab.
+    </p>
+  </div>
+  {{ end }}
+
+  {{/* Article cards for child pages */}}
+  {{ if .Pages }}
+  <div style="margin-top: 2.5rem;">
+    <h2 style="
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted, rgba(224,224,224,0.5));
+      margin-bottom: 1rem;
+    ">Articles in this Edition</h2>
+    <div style="display: grid; gap: 0.75rem;">
+      {{ range .Pages }}
+      <a href="{{ .Permalink }}" style="
+          display: block;
+          padding: 0.9rem 1.1rem;
+          border: 1px solid var(--card-border, #242424);
+          border-radius: 6px;
+          text-decoration: none;
+          color: var(--body-font-color, #e0e0e0);
+          background: var(--card-background, #111);
+          transition: border-color 0.12s, background 0.12s;
+        "
+        onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+        onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+      >
+        <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem;">{{ .Title }}</div>
+        {{ if or .Params.byline .Params.page }}
+        <div style="font-size: 0.74rem; color: var(--muted, rgba(224,224,224,0.5));">
+          {{ with .Params.byline }}By {{ . }}{{ end }}
+          {{ with .Params.page }} · Page {{ . }}{{ end }}
+        </div>
+        {{ end }}
+        {{ with .Params.summary }}
+        <div style="font-size: 0.875rem; color: rgba(224,224,224,0.75); margin-top: .3rem;">{{ . }}</div>
+        {{ end }}
+      </a>
+      {{ end }}
+    </div>
+  </div>
+  {{ end }}
+
+{{ else if .Pages }}
+
+  {{/* ── Date container: no pdf_cover, but has child publications ─────── */}}
+
+  <div style="margin-top: 1rem;">
+    <h2 style="
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted, rgba(224,224,224,0.5));
+      margin-bottom: 1.25rem;
+    ">Newspapers for this Date</h2>
+
+    <div style="display: grid; gap: 1rem;">
+      {{ range .Pages }}
+      <a href="{{ .Permalink }}" style="
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1.1rem 1.3rem;
+          border: 1px solid var(--card-border, #242424);
+          border-radius: 8px;
+          text-decoration: none;
+          color: var(--body-font-color, #e0e0e0);
+          background: var(--card-background, #111);
+          transition: border-color 0.12s, background 0.12s;
+        "
+        onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+        onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+      >
+        <div style="font-size: 1.6rem; opacity: .4;">📰</div>
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 0.2rem;">
+            {{ with .Params.publication }}{{ . }}{{ else }}{{ .Title }}{{ end }}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--muted, rgba(224,224,224,0.5));">
+            {{ with .Params.location }}{{ . }}{{ end }}
+            {{ with .Params.edition }} · {{ . }}{{ end }}
+            {{ with .Params.volume }} · Vol. {{ . }}{{ end }}
+            {{ with .Params.issue }} No. {{ . }}{{ end }}
+          </div>
+        </div>
+        <div style="margin-left: auto; font-size: .8rem; color: var(--text3, #555);">View →</div>
+      </a>
+      {{ end }}
+    </div>
+  </div>
+
 {{ end }}
 
-{{/* ── Markdown body (if any) ───────────────────────────────────────────── */}}
+{{/* Markdown body (if any) */}}
 {{ with .Content }}
 <div style="margin-top: 2rem;">{{ . }}</div>
 {{ end }}

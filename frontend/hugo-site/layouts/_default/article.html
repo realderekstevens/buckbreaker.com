@@ -1,85 +1,193 @@
 {{ define "main" }}
 
-{{/* ── Article header ──────────────────────────────────────────────────── */}}
-<div class="article-header" style="margin-bottom: 2rem;">
+{{/* ── Back link to parent page / edition ─────────────────────────────── */}}
+{{ with .Parent }}
+<a href="{{ .Permalink }}" style="
+  font-size: 0.78rem;
+  color: var(--muted, rgba(224,224,224,0.5));
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-bottom: 1.25rem;
+">← {{ with .Params.publication }}{{ . }}{{ else }}{{ .Title }}{{ end }}
+  {{ with $.Params.page }}<span style="opacity:.5">· p.{{ . }}</span>{{ end }}
+</a>
+{{ end }}
 
-  {{/* Back link to parent newspaper date */}}
-  {{ with .Parent }}
-  <a href="{{ .Permalink }}" style="
-    font-size: 0.78rem;
-    color: var(--muted, rgba(224,224,224,0.5));
-    text-decoration: none;
-    display: inline-block;
-    margin-bottom: 1rem;
-  ">← {{ .Params.publication | default .Title }}</a>
-  {{ end }}
+{{/* ── Article type badge ───────────────────────────────────────────────── */}}
+{{ with .Params.article_type }}
+{{ if ne . "news" }}
+<div style="
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .15rem .55rem;
+  border-radius: 3px;
+  margin-bottom: .75rem;
+  background: var(--card-border, #242424);
+  color: var(--muted, rgba(224,224,224,0.5));
+">{{ . }}</div>
+{{ end }}
+{{ end }}
 
-  <h1 style="
-    font-family: 'Georgia', 'Times New Roman', Times, serif;
-    font-size: 1.8rem;
-    font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: 0.75rem;
-    color: var(--body-font-color, #e0e0e0);
-  ">{{ .Title }}</h1>
+{{/* ── Headline ─────────────────────────────────────────────────────────── */}}
+<h1 style="
+  font-family: 'Georgia', 'Times New Roman', Times, serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+  color: var(--body-font-color, #e0e0e0);
+">{{ .Title }}</h1>
 
-  {{/* Meta bar */}}
-  <div style="
-    font-size: 0.78rem;
-    color: var(--muted, rgba(224,224,224,0.5));
-    border-top: 1px solid var(--card-border, #242424);
-    border-bottom: 1px solid var(--card-border, #242424);
-    padding: 0.45rem 0;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  ">
-    {{ with .Params.publication }}<span>📰 {{ . }}</span>{{ end }}
-    <span>🗓 {{ .Date | time.Format "January 2, 2006" }}</span>
-    {{ with .Params.byline }}<span>✍️ {{ . }}</span>{{ end }}
-    {{ with .Params.page }}<span>Page {{ . }}</span>{{ end }}
-    {{ with .Params.section }}<span>{{ . }}</span>{{ end }}
-  </div>
+{{/* ── Above-the-fold flag ──────────────────────────────────────────────── */}}
+{{ if .Params.above_fold }}
+<div style="font-size:.72rem;color:var(--brand-color,#f5c518);margin-bottom:.5rem;letter-spacing:.05em;">
+  ★ ABOVE THE FOLD
+</div>
+{{ end }}
 
-  {{/* Pull-quote summary */}}
-  {{ with .Params.summary }}
-  <p style="
-    font-style: italic;
-    color: var(--muted, rgba(224,224,224,0.5));
-    border-left: 3px solid var(--color-link, #6aabf7);
-    padding-left: 1rem;
-    margin-bottom: 1.5rem;
-  ">{{ . }}</p>
-  {{ end }}
-
+{{/* ── Meta bar ─────────────────────────────────────────────────────────── */}}
+<div style="
+  font-size: 0.78rem;
+  color: var(--muted, rgba(224,224,224,0.5));
+  border-top: 1px solid var(--card-border, #242424);
+  border-bottom: 1px solid var(--card-border, #242424);
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  align-items: center;
+">
+  {{ with .Params.publication }}<span>📰 {{ . }}{{ with $.Params.edition }} · {{ . }}{{ end }}</span>{{ end }}
+  <span>🗓 {{ .Date | time.Format "January 2, 2006" }}</span>
+  {{ with .Params.byline }}<span>✍️ By {{ . }}</span>{{ end }}
+  {{ if not .Params.byline }}{{ with .Params.wire }}<span>📡 {{ . }}</span>{{ end }}{{ end }}
+  {{ if and .Params.byline .Params.wire }}<span style="opacity:.4">via {{ .Params.wire }}</span>{{ end }}
+  {{ with .Params.page }}<span>Page {{ . }}{{ with $.Params.column }}, Col. {{ . }}{{ end }}</span>{{ end }}
+  {{ with .Params.section }}<span>§ {{ . }}</span>{{ end }}
 </div>
 
+{{/* ── Dateline + summary ────────────────────────────────────────────────── */}}
+{{ with .Params.summary }}
+<p style="
+  font-style: italic;
+  color: var(--muted, rgba(224,224,224,0.6));
+  border-left: 3px solid var(--color-link, #6aabf7);
+  padding-left: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+">{{ with $.Params.dateline }}<strong style="font-style:normal;color:var(--body-font-color,#e0e0e0)">{{ . }}</strong> — {{ end }}{{ . }}</p>
+{{ else }}
+  {{ with .Params.dateline }}
+  <p style="font-size:.85rem;color:var(--muted,rgba(224,224,224,0.5));margin-bottom:1rem;">
+    <strong style="color:var(--body-font-color,#e0e0e0)">{{ . }}</strong>
+  </p>
+  {{ end }}
+{{ end }}
+
+{{/* ── Photo note ───────────────────────────────────────────────────────── */}}
+{{ if .Params.has_photo }}
+<div style="
+  font-size:.78rem;
+  color:var(--muted,rgba(224,224,224,0.4));
+  margin-bottom:1rem;
+  padding:.4rem .75rem;
+  border:1px dashed var(--card-border,#242424);
+  border-radius:4px;
+  display:inline-block;
+">📷 Original print ran with photograph{{ with .Params.photo_caption }}: <em>{{ . }}</em>{{ end }}</div>
+{{ end }}
+
 {{/* ── Article body ─────────────────────────────────────────────────────── */}}
+{{ if .Content }}
 <div class="article-body" style="
   font-family: 'Georgia', 'Times New Roman', Times, serif;
   font-size: 1.05rem;
   line-height: 1.85;
   max-width: 680px;
   color: var(--body-font-color, #e0e0e0);
+  margin-bottom: 2rem;
+">{{ .Content }}</div>
+{{ else }}
+<div style="
+  font-size:.85rem;
+  color:var(--muted,rgba(224,224,224,0.35));
+  font-style:italic;
+  margin-bottom:2rem;
+  padding:1rem;
+  border:1px dashed var(--card-border,#242424);
+  border-radius:4px;
+">Article text not yet transcribed.</div>
+{{ end }}
+
+{{/* ── Continuation notice ───────────────────────────────────────────────── */}}
+{{ if gt (.Params.continued_on_page | default 0) 0 }}
+<div style="
+  font-size:.8rem;
+  color:var(--muted,rgba(224,224,224,0.5));
+  font-style:italic;
+  margin-bottom:1.5rem;
+">Continued on Page {{ .Params.continued_on_page }}{{ with .Params.continued_on_column }}, Column {{ . }}{{ end }}</div>
+{{ end }}
+{{ if gt (.Params.continued_from_page | default 0) 0 }}
+<div style="
+  font-size:.8rem;
+  color:var(--muted,rgba(224,224,224,0.5));
+  font-style:italic;
+  margin-bottom:1.5rem;
+">Continued from Page {{ .Params.continued_from_page }}</div>
+{{ end }}
+
+{{/* ── People, places, topics ───────────────────────────────────────────── */}}
+{{ $hasMeta := or .Params.people .Params.places .Params.topics }}
+{{ if $hasMeta }}
+<div style="
+  margin-bottom:1.5rem;
+  padding:.75rem 1rem;
+  background:var(--card-background,#111);
+  border:1px solid var(--card-border,#242424);
+  border-radius:6px;
+  font-size:.78rem;
+  display:grid;
+  gap:.5rem;
 ">
-  {{ .Content }}
+  {{ with .Params.people }}
+  <div><span style="color:var(--muted,rgba(224,224,224,0.4));margin-right:.5rem">People</span>
+    {{ range . }}<span style="margin-right:.75rem;color:var(--body-font-color,#e0e0e0)">{{ . }}</span>{{ end }}
+  </div>
+  {{ end }}
+  {{ with .Params.places }}
+  <div><span style="color:var(--muted,rgba(224,224,224,0.4));margin-right:.5rem">Places</span>
+    {{ range . }}<span style="margin-right:.75rem;color:var(--body-font-color,#e0e0e0)">{{ . }}</span>{{ end }}
+  </div>
+  {{ end }}
+  {{ with .Params.topics }}
+  <div><span style="color:var(--muted,rgba(224,224,224,0.4));margin-right:.5rem">Topics</span>
+    {{ range . }}<span style="margin-right:.75rem;color:var(--body-font-color,#e0e0e0)">{{ . }}</span>{{ end }}
+  </div>
+  {{ end }}
 </div>
+{{ end }}
 
 {{/* ── Tags ─────────────────────────────────────────────────────────────── */}}
 {{ with .Params.tags }}
-<div style="margin-top: 2rem; font-size: 0.78rem; color: var(--muted, rgba(224,224,224,0.5));">
+<div style="margin-bottom:2rem;">
   {{ range . }}
   <a href="{{ "/tags/" | relURL }}{{ . | urlize }}" style="
-    display: inline-block;
-    margin-right: 0.4rem;
-    margin-bottom: 0.4rem;
-    padding: 0.15rem 0.5rem;
-    border: 1px solid var(--card-border, #242424);
-    border-radius: 3px;
-    text-decoration: none;
-    color: var(--muted, rgba(224,224,224,0.5));
-    transition: border-color 0.12s, color 0.12s;
+    display:inline-block;
+    margin:0 .3rem .3rem 0;
+    padding:.15rem .5rem;
+    border:1px solid var(--card-border,#242424);
+    border-radius:3px;
+    font-size:.74rem;
+    text-decoration:none;
+    color:var(--muted,rgba(224,224,224,0.5));
+    transition:border-color .12s,color .12s;
   "
     onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.color='var(--brand-color,#f5c518)'"
     onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.color='var(--muted,rgba(224,224,224,0.5))'"
@@ -88,18 +196,43 @@
 </div>
 {{ end }}
 
-{{/* ── Back link footer ─────────────────────────────────────────────────── */}}
+{{/* ── Related articles ─────────────────────────────────────────────────── */}}
+{{ with .Params.related }}
+<div style="margin-bottom:2rem;">
+  <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,rgba(224,224,224,0.4));margin-bottom:.6rem;">Related</div>
+  {{ range . }}
+    {{ with $.Site.GetPage . }}
+    <a href="{{ .Permalink }}" style="
+      display:block;
+      padding:.5rem .75rem;
+      margin-bottom:.35rem;
+      border:1px solid var(--card-border,#242424);
+      border-radius:4px;
+      text-decoration:none;
+      color:var(--body-font-color,#e0e0e0);
+      font-size:.85rem;
+      transition:border-color .12s;
+    "
+      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)'"
+      onmouseout="this.style.borderColor='var(--card-border,#242424)'"
+    >{{ .Title }} <span style="font-size:.72rem;color:var(--muted,rgba(224,224,224,0.4))">— {{ .Date | time.Format "Jan 2, 2006" }}</span></a>
+    {{ end }}
+  {{ end }}
+</div>
+{{ end }}
+
+{{/* ── Footer back link ─────────────────────────────────────────────────── */}}
 {{ with .Parent }}
 <div style="
-  margin-top: 2.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--card-border, #242424);
+  padding-top:1rem;
+  border-top:1px solid var(--card-border,#242424);
 ">
   <a href="{{ .Permalink }}" style="
-    color: var(--color-link, #6aabf7);
-    text-decoration: none;
-    font-size: 0.875rem;
-  ">← Back to {{ .Date | time.Format "January 2, 2006" }} edition</a>
+    color:var(--color-link,#6aabf7);
+    text-decoration:none;
+    font-size:.875rem;
+  ">← Back to {{ .Date | time.Format "January 2, 2006" }}
+  {{ with .Params.publication }} · {{ . }}{{ end }}</a>
 </div>
 {{ end }}
 
