@@ -23,7 +23,7 @@ LOCATION="New York, NY"
 CONTENT_DIR="/home/dude/Documents/GitHub/YourStockForecast/frontend/hugo-site/content.en/1929/10/28/Time"
 
 # Where the split PDFs live (static folder)
-PDF_STATIC_DIR="/pdf/"
+PDF_STATIC_DIR="/home/dude/Documents/GitHub/YourStockForecast/frontend/hugo-site/static/pdf/"
 
 # Basename prefix used when the PDF was split (script produces e.g. 1929-10-28-time-1.pdf)
 PDF_PREFIX="1929-10-28-time"
