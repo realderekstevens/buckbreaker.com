@@ -38,3 +38,4 @@ doc/api/
 .flutter-plugins-dependencies
 
 frontend/hugo-site/content.en/stocks/*
+/frontend/hugo-site/static/pdf
