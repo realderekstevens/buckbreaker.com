@@ -1,373 +1,220 @@
 {{ define "main" }}
 
-{{/* ═══════════════════════════════════════════════════════════════
-     YourStockForecast — Dashboard (index.html)
-     This is the home page layout. Hugo falls back to list.html
-     when this file is absent, which causes the missing dashboard.
-     ═══════════════════════════════════════════════════════════════ */}}
+{{/* ── Collect all newspaper editions (pages with pdf_cover) ─────────── */}}
+{{ $editions := where .Site.Pages "Params.pdf_cover" "ne" nil }}
+{{ $editions  = where $editions ".Date.Year" "gt" 1 }}
+{{ $recent    := first 5 (sort $editions "Date" "desc") }}
 
-{{/* ── Summary stat cards ─────────────────────────────────────── */}}
-<div class="dash-stats" id="dash-stats">
-  <div class="stat-card" id="stat-gainers-loaded">
-    <div class="stat-label">Gainers Loaded</div>
-    <div class="stat-value pos skeleton-val" id="val-gainers-loaded">—</div>
-  </div>
-  <div class="stat-card" id="stat-losers-loaded">
-    <div class="stat-label">Losers Loaded</div>
-    <div class="stat-value neg skeleton-val" id="val-losers-loaded">—</div>
-  </div>
-  <div class="stat-card" id="stat-top-gainer">
-    <div class="stat-label">Top Gainer Today</div>
-    <div class="stat-value pos skeleton-val" id="val-top-gainer">—</div>
-    <div class="stat-sub"        id="val-top-gainer-sym"></div>
-  </div>
-  <div class="stat-card" id="stat-most-active">
-    <div class="stat-label">Most Active Vol</div>
-    <div class="stat-value skeleton-val"     id="val-most-active">—</div>
-    <div class="stat-sub"                    id="val-most-active-sym"></div>
-  </div>
-</div>
-
-{{/* ── Main grid: gainers | losers ─────────────────────────────── */}}
-<div class="dash-grid">
-
-  <div class="panel">
-    <div class="panel-title">
-      <span class="panel-dot pos-dot"></span> Top Gainers
-      <span class="panel-badge" id="badge-gainers"></span>
-      <span class="panel-status" id="status-gainers"></span>
-    </div>
-    <div class="table-wrap" id="gainers-table">
-      <div class="skeleton-table">
-        {{ range seq 10 }}<div class="skeleton-row"></div>{{ end }}
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">
-      <span class="panel-dot neg-dot"></span> Top Losers
-      <span class="panel-badge" id="badge-losers"></span>
-      <span class="panel-status" id="status-losers"></span>
-    </div>
-    <div class="table-wrap" id="losers-table">
-      <div class="skeleton-table">
-        {{ range seq 10 }}<div class="skeleton-row"></div>{{ end }}
-      </div>
-    </div>
-  </div>
-
-</div>
-
-{{/* ── Most active by volume ────────────────────────────────────── */}}
-<div class="panel" style="margin-top:1rem">
-  <div class="panel-title">
-    <span class="panel-dot vol-dot"></span> Most Active by Volume
-    <span class="panel-badge" id="badge-volume"></span>
-    <span class="panel-status" id="status-volume"></span>
-  </div>
-  <div class="table-wrap" id="volume-table">
-    <div class="skeleton-table">
-      {{ range seq 8 }}<div class="skeleton-row"></div>{{ end }}
-    </div>
-  </div>
-</div>
+{{/* ── Collect recently added articles ───────────────────────────────── */}}
+{{ $articles := where .Site.RegularPages "Params.pdf_cover" nil }}
+{{ $articles  = where $articles ".Date.Year" "gt" 1 }}
+{{ $articles  = first 8 (sort $articles "Date" "desc") }}
 
 <style>
-/* ── Dashboard layout ──────────────────────────────────────────── */
-.dash-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .75rem;
-  margin-bottom: 1rem;
+.home-hero {
+  border-bottom: 3px double var(--body-font-color, #e0e0e0);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
 }
-@media (max-width: 900px) {
-  .dash-stats { grid-template-columns: repeat(2, 1fr); }
+.home-hero h1 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-bottom: .4rem;
+  color: var(--body-font-color, #e0e0e0);
 }
-@media (max-width: 500px) {
-  .dash-stats { grid-template-columns: 1fr 1fr; }
+.home-hero .tagline {
+  font-size: .85rem;
+  color: var(--muted, rgba(224,224,224,0.5));
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
-
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-@media (max-width: 860px) {
-  .dash-grid { grid-template-columns: 1fr; }
-}
-
-/* ── Skeleton shimmer ─────────────────────────────────────────── */
-.skeleton-table { display:flex; flex-direction:column; gap:6px; padding:8px 0; }
-.skeleton-row {
-  height: 28px;
-  border-radius: 4px;
-  background: linear-gradient(90deg,
-    var(--bg3, #1a1a1a) 25%,
-    var(--bg4, #232323) 50%,
-    var(--bg3, #1a1a1a) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-.skeleton-row:first-child { opacity:.5; }
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-.skeleton-val {
-  background: linear-gradient(90deg,
-    var(--bg3, #1a1a1a) 25%,
-    var(--bg4, #232323) 50%,
-    var(--bg3, #1a1a1a) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 3px;
-  color: transparent !important;
-  min-width: 40px;
-  min-height: 1.6em;
-  display: inline-block;
-}
-
-/* ── Panel header extras ──────────────────────────────────────── */
-.panel-title {
+.home-hero .stats-bar {
   display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .75rem;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-top: 1.25rem;
+  font-size: .78rem;
+  color: var(--muted, rgba(224,224,224,0.5));
+}
+.home-hero .stats-bar strong {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--body-font-color, #e0e0e0);
+  font-family: 'Georgia', serif;
+}
+
+.section-label {
+  font-size: .68rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--text3, rgba(224,224,224,0.5));
-  padding: .65rem 1rem;
-  border-bottom: 1px solid var(--border, #242424);
-}
-.panel-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.pos-dot { background: var(--pos, #26a65b); }
-.neg-dot { background: var(--neg, #e74c3c); }
-.vol-dot { background: var(--accent, #f5c518); }
-
-.panel-badge {
-  font-size: .7rem;
-  font-weight: 600;
-  color: var(--text3);
-  margin-left: auto;
-}
-.panel-status {
-  font-size: .68rem;
-  color: var(--text3);
-  font-weight: 400;
-  font-style: italic;
+  letter-spacing: .1em;
+  color: var(--muted, rgba(224,224,224,0.4));
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--card-border, #242424);
 }
 
-/* ── Error state ──────────────────────────────────────────────── */
-.fetch-error {
+.edition-card {
   display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: 1.25rem 1rem;
-  font-size: .82rem;
-  color: var(--neg, #e74c3c);
+  flex-direction: column;
+  gap: .2rem;
+  padding: .9rem 1.1rem;
+  border: 1px solid var(--card-border, #242424);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--body-font-color, #e0e0e0);
+  background: var(--card-background, #111);
+  transition: border-color .12s, background .12s;
+  margin-bottom: .6rem;
 }
-.fetch-error .retry-btn {
-  margin-left: auto;
+.edition-card:hover {
+  border-color: var(--brand-color, #f5c518);
+  background: #161616;
+}
+.edition-card .pub-name {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.edition-card .pub-meta {
+  font-size: .74rem;
+  color: var(--muted, rgba(224,224,224,0.5));
+}
+.edition-card .pub-date {
   font-size: .72rem;
-  padding: .2rem .55rem;
-  border: 1px solid var(--neg, #e74c3c);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--neg, #e74c3c);
-  cursor: pointer;
-  transition: background .12s;
+  color: var(--brand-color, #f5c518);
+  font-weight: 600;
+  letter-spacing: .03em;
 }
-.fetch-error .retry-btn:hover { background: rgba(231,76,60,.12); }
+
+.article-row {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--body-font-color, #e0e0e0);
+  transition: background .1s;
+  border-bottom: 1px solid var(--card-border, #242424);
+}
+.article-row:last-child { border-bottom: none; }
+.article-row:hover { background: var(--card-background, #111); }
+.article-row .art-date {
+  flex-shrink: 0;
+  font-size: .68rem;
+  color: var(--muted, rgba(224,224,224,0.4));
+  width: 6rem;
+}
+.article-row .art-title {
+  font-size: .88rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.article-row .art-pub {
+  flex-shrink: 0;
+  font-size: .68rem;
+  color: var(--muted, rgba(224,224,224,0.4));
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+@media (max-width: 860px) {
+  .home-grid { grid-template-columns: 1fr; }
+}
 </style>
 
+{{/* ── Hero masthead ───────────────────────────────────────────────────── */}}
+<div class="home-hero">
+  <h1>YourStockForecast</h1>
+  <div class="tagline">Historical Newspaper Archive · Stock Market Transcriptions</div>
+  <div class="stats-bar">
+    {{ $totalEditions := len $editions }}
+    {{ $totalArticles := len $articles }}
+    {{ $allArticles   := where .Site.RegularPages "Params.pdf_cover" nil }}
+    <div><strong>{{ len $editions }}</strong> Editions</div>
+    <div><strong>{{ len $allArticles }}</strong> Articles</div>
+    {{ with $editions }}
+    {{ $oldest := index (sort . "Date" "asc") 0 }}
+    {{ $newest := index (sort . "Date" "desc") 0 }}
+    <div><strong>{{ $oldest.Date.Format "2006" }}–{{ $newest.Date.Format "2006" }}</strong> Years Covered</div>
+    {{ end }}
+  </div>
+</div>
+
+<div class="home-grid">
+
+  {{/* ── Recent editions ───────────────────────────────────────────────── */}}
+  <div>
+    <div class="section-label">Recently Added Editions</div>
+    {{ range $recent }}
+    <a class="edition-card" href="{{ .RelPermalink }}">
+      <div class="pub-date">{{ .Date.Format "Monday, January 2, 2006" }}</div>
+      <div class="pub-name">{{ with .Params.publication }}{{ . }}{{ else }}{{ .Title }}{{ end }}</div>
+      <div class="pub-meta">
+        {{ with .Params.location }}{{ . }}{{ end }}
+        {{ with .Params.edition }} · {{ . }}{{ end }}
+        {{ with .Pages }}· {{ len . }} article{{ if gt (len .) 1 }}s{{ end }}{{ end }}
+      </div>
+    </a>
+    {{ else }}
+    <p style="font-size:.85rem;color:var(--muted,rgba(224,224,224,0.4));font-style:italic">No editions yet.</p>
+    {{ end }}
+  </div>
+
+  {{/* ── Recent articles ───────────────────────────────────────────────── */}}
+  <div>
+    <div class="section-label">Recently Added Articles</div>
+    <div style="background:var(--card-background,#111);border:1px solid var(--card-border,#242424);border-radius:6px;overflow:hidden;">
+      {{ range $articles }}
+      <a class="article-row" href="{{ .RelPermalink }}">
+        <span class="art-date">{{ .Date.Format "Jan 2, 2006" }}</span>
+        <span class="art-title">{{ .Title }}</span>
+        <span class="art-pub">{{ with .Params.publication }}{{ . | truncate 18 }}{{ end }}</span>
+      </a>
+      {{ else }}
+      <p style="font-size:.85rem;color:var(--muted,rgba(224,224,224,0.4));font-style:italic;padding:1rem">No articles yet.</p>
+      {{ end }}
+    </div>
+  </div>
+
+</div>
+
+{{/* ── Browse by year ────────────────────────────────────────────────── */}}
+{{ if $editions }}
+<div style="margin-top:2.5rem">
+  <div class="section-label">Browse the Archive</div>
+  <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+    {{ range ($editions.GroupByDate "2006" "asc") }}
+    {{ $yearEditions := .Pages }}
+    {{ $year := .Key }}
+    {{ $firstEdition := index (sort $yearEditions "Date" "asc") 0 }}
+    <a href="{{ $firstEdition.RelPermalink }}" style="
+      display:inline-flex;flex-direction:column;align-items:center;
+      padding:.6rem 1.1rem;
+      border:1px solid var(--card-border,#242424);border-radius:6px;
+      text-decoration:none;color:var(--body-font-color,#e0e0e0);
+      background:var(--card-background,#111);
+      transition:border-color .12s,background .12s;min-width:5rem;
+    "
+      onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+      onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+    >
+      <span style="font-family:'Georgia',serif;font-size:1.2rem;font-weight:700">{{ $year }}</span>
+      <span style="font-size:.68rem;color:var(--muted,rgba(224,224,224,0.4));margin-top:.15rem">{{ len $yearEditions }} edition{{ if gt (len $yearEditions) 1 }}s{{ end }}</span>
+    </a>
+    {{ end }}
+  </div>
+</div>
 {{ end }}
 
-{{ define "scripts" }}
-<script>
-/**
- * Dashboard data loader
- * ─────────────────────
- * Key design decisions to eliminate flickering:
- *
- * 1. LOCK FLAG — each panel has an `active` flag. A new fetch
- *    won't start until the previous one settles (no race conditions).
- *
- * 2. EXPONENTIAL BACKOFF — on failure, retry after 4s → 8s → 16s
- *    (capped at 32s). Stops hammering PostgREST when it's down.
- *
- * 3. STABLE DOM — skeleton HTML is rendered server-side by Hugo.
- *    JS only ever replaces the inner content once data is ready,
- *    never toggles visibility repeatedly.
- *
- * 4. SINGLE setInterval per panel — interval is cleared and
- *    replaced only if the refresh interval changes. No stacking.
- */
-
-(function Dashboard() {
-  const CFG = window.YSF_CONFIG || {};
-  const REFRESH = Math.max(CFG.refreshMs || 60000, 15000); // floor at 15s
-  const COLS_GAINERS = [
-    { key: 'symbol',              label: 'Symbol', fmt: v => `<a href="/stocks/${(v||'').toLowerCase().replace(/\./g,'-')}">${v}</a>` },
-    { key: 'current_stock_price', label: 'Price',  fmt: YSF.fmt.price },
-    { key: 'performance_today',   label: '% Today',fmt: YSF.fmt.pct, pct: true },
-    { key: 'volume',              label: 'Volume', fmt: YSF.fmt.vol },
-    { key: 'market_capitalization',label:'Mkt Cap',fmt: YSF.fmt.mcap },
-  ];
-  const COLS_LOSERS = COLS_GAINERS;
-  const COLS_VOLUME = [
-    { key: 'symbol',              label: 'Symbol', fmt: v => `<a href="/stocks/${(v||'').toLowerCase().replace(/\./g,'-')}">${v}</a>` },
-    { key: 'current_stock_price', label: 'Price',  fmt: YSF.fmt.price },
-    { key: 'volume',              label: 'Volume', fmt: YSF.fmt.vol },
-    { key: 'performance_today',   label: '% Today',fmt: YSF.fmt.pct, pct: true },
-    { key: 'market_capitalization',label:'Mkt Cap',fmt: YSF.fmt.mcap },
-  ];
-
-  // ── Panel controller factory ─────────────────────────────────────────────
-  function makePanel(id, fetchFn, columns, badgeId, statusId) {
-    const state = {
-      active:     false,
-      backoff:    4000,
-      retryTimer: null,
-      interval:   null,
-      firstLoad:  true,
-    };
-
-    function setStatus(msg) {
-      const el = document.getElementById(statusId);
-      if (el) el.textContent = msg;
-    }
-    function setBadge(msg) {
-      const el = document.getElementById(badgeId);
-      if (el) el.textContent = msg;
-    }
-
-    function showError(msg, retryFn) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.innerHTML = `
-        <div class="fetch-error">
-          ⚠ ${msg}
-          <button class="retry-btn" onclick="(${retryFn.toString()})()">Retry</button>
-        </div>`;
-    }
-
-    async function load() {
-      if (state.active) return;      // already in-flight
-      state.active = true;
-      clearTimeout(state.retryTimer);
-      setStatus('updating…');
-
-      try {
-        const { data } = await fetchFn();
-
-        // ── Render table ──────────────────────────────────────────
-        YSF.renderTable(id, data, columns);
-
-        // ── Update badge ──────────────────────────────────────────
-        setBadge(data.length ? `${data.length} stocks` : '');
-        const ts = data[0]?.time_recorded;
-        setStatus(ts ? 'as of ' + new Date(ts).toLocaleTimeString() : '');
-
-        // ── Update summary stat cards (first panel = gainers) ─────
-        if (badgeId === 'badge-gainers' && data.length) {
-          animateValue('val-gainers-loaded', data.length);
-          const top = data[0];
-          document.getElementById('val-top-gainer').innerHTML =
-            YSF.fmt.pct(top.performance_today);
-          document.getElementById('val-top-gainer-sym').textContent =
-            top.symbol || '';
-          document.getElementById('val-top-gainer').classList.remove('skeleton-val');
-          document.getElementById('val-gainers-loaded').classList.remove('skeleton-val');
-        }
-        if (badgeId === 'badge-losers' && data.length) {
-          animateValue('val-losers-loaded', data.length);
-          document.getElementById('val-losers-loaded').classList.remove('skeleton-val');
-        }
-        if (badgeId === 'badge-volume' && data.length) {
-          const top = data[0];
-          document.getElementById('val-most-active').textContent =
-            top.volume ? parseInt(top.volume).toLocaleString() : '—';
-          document.getElementById('val-most-active-sym').textContent =
-            top.symbol || '';
-          document.getElementById('val-most-active').classList.remove('skeleton-val');
-        }
-
-        state.backoff   = 4000;   // reset backoff on success
-        state.firstLoad = false;
-
-      } catch (err) {
-        // Only show error UI if first load; subsequent failures show status
-        if (state.firstLoad) {
-          showError('Failed to fetch: ' + err.message, load);
-        } else {
-          setStatus('⚠ fetch failed — retrying in ' + (state.backoff/1000) + 's');
-        }
-        // Schedule retry with backoff
-        state.retryTimer = setTimeout(() => {
-          state.active = false;   // release lock before retry
-          load();
-        }, state.backoff);
-        state.backoff = Math.min(state.backoff * 2, 32000);
-      } finally {
-        state.active = false;
-      }
-    }
-
-    // Kick off first load immediately
-    load();
-
-    // Schedule periodic refresh — but only if not already retrying
-    state.interval = setInterval(() => {
-      if (!state.retryTimer) load();
-    }, REFRESH);
-
-    return { load, state };
-  }
-
-  // ── Number counter animation ─────────────────────────────────────────────
-  function animateValue(id, target) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('skeleton-val');
-    let start = 0;
-    const step = Math.ceil(target / 20);
-    const t = setInterval(() => {
-      start = Math.min(start + step, target);
-      el.textContent = start;
-      if (start >= target) clearInterval(t);
-    }, 30);
-  }
-
-  // ── Boot all three panels ────────────────────────────────────────────────
-  makePanel(
-    'gainers-table',
-    () => YSF.stocks.gainers(15),
-    COLS_GAINERS,
-    'badge-gainers',
-    'status-gainers'
-  );
-
-  makePanel(
-    'losers-table',
-    () => YSF.stocks.losers(15),
-    COLS_LOSERS,
-    'badge-losers',
-    'status-losers'
-  );
-
-  makePanel(
-    'volume-table',
-    () => YSF.market.mostActive(15),
-    COLS_VOLUME,
-    'badge-volume',
-    'status-volume'
-  );
-
-})();
-</script>
 {{ end }}

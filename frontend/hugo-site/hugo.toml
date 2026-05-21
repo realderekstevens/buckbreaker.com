@@ -11,6 +11,7 @@
 baseURL  = "https://yourstockforecast.com/"
 title    = "YourStockForecast"
 theme    = "book"
+BookEditPath = "edit/main/frontend/hugo-site/content.en"
 
 # Content language
 locale                 = "en-US"

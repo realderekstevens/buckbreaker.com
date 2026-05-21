@@ -188,30 +188,6 @@
     {{/* ── Left sidebar ─────────────────────────────────────────────────── */}}
     <aside class="site-sidebar">
 
-      {{/* — Stock symbol search — */}}
-      <div class="sidebar-heading">Stock Search</div>
-      <div class="sidebar-search-wrap">
-        <input type="text" id="sidebar-ticker-search" placeholder="Symbol…" autocomplete="off">
-        <div id="sidebar-ticker-results" class="search-results hidden"
-             style="position:static;margin-top:4px;max-height:12rem;overflow-y:auto"></div>
-      </div>
-
-      {{/* — Article full-text search — */}}
-      <div class="sidebar-heading" style="margin-top:.75rem">Search Archives</div>
-      <div class="sidebar-search-wrap">
-        <input type="text" id="article-search" placeholder="Search articles…" autocomplete="off">
-      </div>
-      <div id="article-search-results"
-           style="display:none;max-height:18rem;overflow-y:auto;border-top:1px solid var(--border)"></div>
-
-      {{/* — Market links — */}}
-      <div class="sidebar-heading" style="margin-top:.75rem">Stock Market</div>
-      <a class="sidebar-link{{ if .IsHome }} active{{ end }}"                           href="/">Dashboard</a>
-      <a class="sidebar-link{{ if eq .RelPermalink "/gainers/"  }} active{{ end }}"     href="/gainers">Gainers</a>
-      <a class="sidebar-link{{ if eq .RelPermalink "/losers/"   }} active{{ end }}"     href="/losers">Losers</a>
-      <a class="sidebar-link{{ if eq .RelPermalink "/screener/" }} active{{ end }}"     href="/screener">Screener</a>
-      <a class="sidebar-link{{ if eq .RelPermalink "/sectors/"  }} active{{ end }}"     href="/sectors">Sectors</a>
-
       {{/* ── Newspaper archive — Year ▶ Edition ▶ Articles ───────────────── */}}
       <div class="sidebar-heading" style="margin-top:.75rem">Newspaper Archive</div>
 
