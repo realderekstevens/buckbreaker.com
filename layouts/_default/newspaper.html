@@ -1,4 +1,83 @@
+{{/* ── Reusable nav block rendered top & bottom ───────────────────────── */}}
+{{ define "page-nav" }}
+{{ $prev := .Prev }}
+{{ $next := .Next }}
+{{ if or $prev $next }}
+<nav style="
+  display:flex;justify-content:space-between;align-items:stretch;
+  gap:1rem;padding:1rem 0;
+  border-top:1px solid var(--card-border,#242424);
+  border-bottom:1px solid var(--card-border,#242424);
+">
+  {{ if $prev }}
+  <a href="{{ $prev.Permalink }}" style="
+    flex:1;max-width:48%;
+    display:flex;flex-direction:column;gap:.3rem;
+    padding:.9rem 1.1rem;
+    border:1px solid var(--card-border,#242424);border-radius:6px;
+    text-decoration:none;color:var(--body-font-color,#e0e0e0);
+    background:var(--card-background,#111);transition:border-color .12s,background .12s;
+  "
+    onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+    onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+  >
+    <span style="font-size:.7rem;color:var(--muted,rgba(224,224,224,0.4));letter-spacing:.06em;text-transform:uppercase;">← Previous</span>
+    <span style="font-weight:600;font-size:.95rem;">{{ $prev.Title }}</span>
+    {{ with $prev.Params.publication }}<span style="font-size:.75rem;color:var(--muted,rgba(224,224,224,0.45));">{{ . }}</span>{{ end }}
+  </a>
+  {{ else }}<div style="flex:1;max-width:48%"></div>{{ end }}
+
+  {{ if $next }}
+  <a href="{{ $next.Permalink }}" style="
+    flex:1;max-width:48%;
+    display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;
+    padding:.9rem 1.1rem;text-align:right;
+    border:1px solid var(--card-border,#242424);border-radius:6px;
+    text-decoration:none;color:var(--body-font-color,#e0e0e0);
+    background:var(--card-background,#111);transition:border-color .12s,background .12s;
+  "
+    onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
+    onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
+  >
+    <span style="font-size:.7rem;color:var(--muted,rgba(224,224,224,0.4));letter-spacing:.06em;text-transform:uppercase;">Next →</span>
+    <span style="font-weight:600;font-size:.95rem;">{{ $next.Title }}</span>
+    {{ with $next.Params.publication }}<span style="font-size:.75rem;color:var(--muted,rgba(224,224,224,0.45));">{{ . }}</span>{{ end }}
+  </a>
+  {{ else }}<div style="flex:1;max-width:48%"></div>{{ end }}
+</nav>
+{{ end }}
+{{ end }}
+
 {{ define "main" }}
+
+{{/* ── Prev / Next page navigation (computed once, used top & bottom) ── */}}
+{{ $prev := false }}
+{{ $next := false }}
+
+{{ if .Sections }}
+  {{/* Front page: this page HAS child sections (Page 2, Page 3...).
+       Prev = nothing (we are on page 1). Next = first child page.   */}}
+  {{ $next = index (.Sections.ByWeight) 0 }}
+{{ else }}
+  {{/* Inner page: navigate among siblings, with parent as page 1.  */}}
+  {{ $siblings := .Parent.Sections.ByWeight }}
+  {{ $found    := false }}
+  {{ range $siblings }}
+    {{ if $found }}
+      {{ if not $next }}{{ $next = . }}{{ end }}
+    {{ end }}
+    {{ if eq .RelPermalink $.RelPermalink }}
+      {{ $found = true }}
+    {{ end }}
+    {{ if not $found }}
+      {{ $prev = . }}
+    {{ end }}
+  {{ end }}
+  {{/* If still no $prev, we are the first sibling so page 1 is .Parent */}}
+  {{ if and (not $prev) .Parent.Params.pdf_cover }}
+    {{ $prev = .Parent }}
+  {{ end }}
+{{ end }}
 
 {{/* ── Newspaper masthead ─────────────────────────────────────────────── */}}
 <div class="newspaper-header" style="
@@ -35,6 +114,9 @@
 {{ if .Params.pdf_cover }}
 
   {{/* ── Has a PDF: render viewer ─────────────────────────────────────── */}}
+
+  {{/* Top page navigation */}}
+  {{ template "page-nav" (dict "Prev" $prev "Next" $next) }}
 
   <div class="pdf-viewer" style="margin: 1.5rem 0;">
     <iframe
@@ -152,68 +234,7 @@
 <div style="margin-top:2rem;">{{ . }}</div>
 {{ end }}
 
-{{/* ── Prev / Next page navigation ─────────────────────────────────────── */}}
-{{/* .PrevInSection is nil for _index.md sections so we walk
-     .Parent.Sections.ByWeight to find siblings manually.                 */}}
-{{ $siblings := .Parent.Sections.ByWeight }}
-{{ $prev  := false }}
-{{ $next  := false }}
-{{ $found := false }}
-{{ range $siblings }}
-  {{ if $found }}
-    {{ if not $next }}{{ $next = . }}{{ end }}
-  {{ end }}
-  {{ if eq .RelPermalink $.RelPermalink }}
-    {{ $found = true }}
-  {{ end }}
-  {{ if not $found }}
-    {{ $prev = . }}
-  {{ end }}
-{{ end }}
-
-{{ if or $prev $next }}
-<nav style="
-  display:flex;justify-content:space-between;align-items:stretch;
-  gap:1rem;margin-top:3rem;padding-top:1.5rem;
-  border-top:1px solid var(--card-border,#242424);
-">
-  {{ if $prev }}
-  <a href="{{ $prev.Permalink }}" style="
-    flex:1;max-width:48%;
-    display:flex;flex-direction:column;gap:.3rem;
-    padding:.9rem 1.1rem;
-    border:1px solid var(--card-border,#242424);border-radius:6px;
-    text-decoration:none;color:var(--body-font-color,#e0e0e0);
-    background:var(--card-background,#111);transition:border-color .12s,background .12s;
-  "
-    onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
-    onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
-  >
-    <span style="font-size:.7rem;color:var(--muted,rgba(224,224,224,0.4));letter-spacing:.06em;text-transform:uppercase;">← Previous</span>
-    <span style="font-weight:600;font-size:.95rem;">{{ $prev.Title }}</span>
-    {{ with $prev.Params.publication }}<span style="font-size:.75rem;color:var(--muted,rgba(224,224,224,0.45));">{{ . }}</span>{{ end }}
-  </a>
-  {{ else }}<div style="flex:1;max-width:48%"></div>{{ end }}
-
-  {{ if $next }}
-  <a href="{{ $next.Permalink }}" style="
-    flex:1;max-width:48%;
-    display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;
-    padding:.9rem 1.1rem;text-align:right;
-    border:1px solid var(--card-border,#242424);border-radius:6px;
-    text-decoration:none;color:var(--body-font-color,#e0e0e0);
-    background:var(--card-background,#111);transition:border-color .12s,background .12s;
-  "
-    onmouseover="this.style.borderColor='var(--brand-color,#f5c518)';this.style.background='#161616'"
-    onmouseout="this.style.borderColor='var(--card-border,#242424)';this.style.background='var(--card-background,#111)'"
-  >
-    <span style="font-size:.7rem;color:var(--muted,rgba(224,224,224,0.4));letter-spacing:.06em;text-transform:uppercase;">Next →</span>
-    <span style="font-weight:600;font-size:.95rem;">{{ $next.Title }}</span>
-    {{ with $next.Params.publication }}<span style="font-size:.75rem;color:var(--muted,rgba(224,224,224,0.45));">{{ . }}</span>{{ end }}
-  </a>
-  {{ else }}<div style="flex:1;max-width:48%"></div>{{ end }}
-
-</nav>
-{{ end }}
+{{/* ── Bottom page navigation ──────────────────────────────────────────── */}}
+{{ template "page-nav" (dict "Prev" $prev "Next" $next) }}
 
 {{ end }}

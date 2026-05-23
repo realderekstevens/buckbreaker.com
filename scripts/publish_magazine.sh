@@ -24,7 +24,7 @@
 set -euo pipefail
 
 # ── HARD-CODED SITE PATHS (edit once, never again) ───────────────────────────
-HUGO_ROOT="/home/dude/Documents/GitHub/YourStockForecast/frontend/hugo-site"
+HUGO_ROOT="/home/dude/Documents/GitHub/YourStockForecast/"
 PDF_STATIC_DIR="${HUGO_ROOT}/static/pdf"
 CONTENT_BASE="${HUGO_ROOT}/content.en"
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,6 +104,8 @@ echo ""
 
 # ── STEP 1: SPLIT PDF ────────────────────────────────────────────────────────
 echo "[ 1/3 ] Splitting PDF into single pages..."
+
+mkdir -p "$PDF_STATIC_DIR"
 
 python3 - <<PYEOF
 from pypdf import PdfReader, PdfWriter

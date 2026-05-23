@@ -8,10 +8,10 @@
 #     Run: git submodule update --init --recursive
 # =============================================================================
 
-baseURL  = "https://yourstockforecast.com/"
-title    = "YourStockForecast"
+baseURL  = "https://buckbreaker.com/"
+title    = "BuckBreaker.com"
 theme    = "book"
-BookEditPath = "edit/main/frontend/hugo-site/content.en"
+BookEditPath = "edit/main/content.en"
 
 # Content language
 locale                 = "en-US"
@@ -80,8 +80,8 @@ summaryLength = 70
   weight = 10
 
 [[menu.after]]
-  name   = "YourStockForecast.com"
-  url    = "https://yourstockforecast.com"
+  name   = "BuckBreaker.com"
+  url    = "https://buckbreaker.com"
   weight = 20
 
 # =============================================================================
