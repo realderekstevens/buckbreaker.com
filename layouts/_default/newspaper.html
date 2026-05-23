@@ -234,6 +234,26 @@
 <div style="margin-top:2rem;">{{ . }}</div>
 {{ end }}
 
+{{/* ── Edit this page link ──────────────────────────────────────────────── */}}
+{{ if .Site.Params.BookEditPath }}
+{{ $filePath := "" }}
+{{ if .File }}
+  {{ $filePath = .File.Path }}
+{{ else }}
+  {{/* Bundle pages (_index.md): construct path from section path */}}
+  {{ $filePath = printf "%s_index.md" .RelPermalink | strings.TrimPrefix "/" }}
+{{ end }}
+<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--card-border,#242424);">
+  <a href="{{ .Site.Params.BookGitRepository }}/{{ .Site.Params.BookEditPath }}/{{ $filePath }}"
+     target="_blank" rel="noopener noreferrer"
+     style="font-size:.78rem;color:var(--muted,rgba(224,224,224,0.45));text-decoration:none;"
+     onmouseover="this.style.color='var(--brand-color,#f5c518)'"
+     onmouseout="this.style.color='var(--muted,rgba(224,224,224,0.45))'">
+    ✎ Edit this page
+  </a>
+</div>
+{{ end }}
+
 {{/* ── Bottom page navigation ──────────────────────────────────────────── */}}
 {{ template "page-nav" (dict "Prev" $prev "Next" $next) }}
 

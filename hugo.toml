@@ -11,7 +11,7 @@
 baseURL  = "https://buckbreaker.com/"
 title    = "BuckBreaker.com"
 theme    = "book"
-BookEditPath = "edit/main/content.en"
+#BookEditPath = "edit/main/content.en"
 
 # Content language
 locale                 = "en-US"
@@ -51,18 +51,18 @@ summaryLength = 70
 
   # Theme toggle: "auto" respects the reader's OS preference
   # Options: "auto" | "light" | "dark"
-  BookTheme = "auto"
+  BookTheme = "dark"
 
   # Show page-level git commit info (author, date) — requires git history
   # Disable this if you get "Failed to read Git log" errors on a fresh repo
-  BookGitRepository = "https://github.com/realderekstevens/YourStockForecast"
+  BookGitRepository = "https://github.com/realderekstevens/buckbreaker.com"
   BookCommitPath    = "commit"
 
   # Landing page path — where the logo/title in the top-left links to
   BookLogo = ""
 
   # Optional: override the default "Edit this page" link
-  # BookEditPath = "edit/main"
+  BookEditPath = "edit/main/content.en"
 
   # Set to true to collapse all menu sections by default
   BookCollapseSection = false

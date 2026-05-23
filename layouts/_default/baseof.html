@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ if .IsHome }}{{ .Site.Title }} — Free Stock Data & Analysis{{ else }}{{ .Title }} — {{ .Site.Title }}{{ end }}</title>
+  <title>{{ if .IsHome }}BuckBreaker.com — Historical Newspaper Archive{{ else }}{{ .Title }} — BuckBreaker.com{{ end }}</title>
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
   <meta property="og:title"       content="{{ .Title }} — {{ .Site.Title }}">
   <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
@@ -160,46 +160,29 @@
 <body>
 <div class="site-wrapper">
 
-  {{/* ── Top navigation bar ───────────────────────────────────────────────── */}}
-  <header class="site-header">
-    <nav class="nav-inner">
-      <a class="nav-brand" href="/">BuckBreaker<span>.com</span></a>
-      <div class="nav-links">
-        <a href="/"         {{ if .IsHome }}class="active"{{ end }}>Dashboard</a>
-        <a href="/screener" {{ if eq .RelPermalink "/screener/" }}class="active"{{ end }}>Screener</a>
-        <a href="/gainers"  {{ if eq .RelPermalink "/gainers/"  }}class="active"{{ end }}>Gainers</a>
-        <a href="/losers"   {{ if eq .RelPermalink "/losers/"   }}class="active"{{ end }}>Losers</a>
-        <a href="/sectors"  {{ if eq .RelPermalink "/sectors/"  }}class="active"{{ end }}>Sectors</a>
-      </div>
-      <div class="nav-right">
-        <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input type="text" id="search-input" placeholder="Search symbol…" autocomplete="off">
-          <div class="search-results hidden" id="search-results"></div>
-        </div>
-        <div id="auth-nav"></div>
-      </div>
-    </nav>
-  </header>
-
   {{/* ── Page body: sidebar + main ───────────────────────────────────────── */}}
   <div class="body-layout">
 
     {{/* ── Left sidebar ─────────────────────────────────────────────────── */}}
     <aside class="site-sidebar">
 
-      {{/* ── Newspaper archive — Year ▶ Edition ▶ Articles ───────────────── */}}
+      <a class="sidebar-brand" href="/">BuckBreaker<span>.com</span></a>
+
+      {{/* — Article full-text search — */}}
+      <div class="sidebar-heading">Search Archives</div>
+      <div class="sidebar-search-wrap">
+        <input type="text" id="article-search" placeholder="Search articles…" autocomplete="off">
+      </div>
+      <div id="article-search-results"
+           style="display:none;max-height:18rem;overflow-y:auto;border-top:1px solid var(--border)"></div>
+
+      {{/* ── Newspaper archive — Year ▶ Month ▶ Day ▶ Articles ─────────── */}}
       <div class="sidebar-heading" style="margin-top:.75rem">Newspaper Archive</div>
 
-      {{/* Editions = pages with pdf_cover. GroupByDate requires a real Hugo
-           Pages type so we use `where` throughout (not append/slice).
-           Sub-pages like new-york-times/4/ also have pdf_cover, so we
-           filter them out inside the day loop by checking .Parent.Params.pdf_cover. */}}
       {{ $editions := where .Site.Pages "Params.pdf_cover" "ne" nil }}
       {{ $editions  = where $editions ".Date.Year" "gt" 1 }}
       {{ $editions  = sort  $editions "Date" "asc" }}
 
-      {{/* Helpers for auto-opening the right year / month / day. */}}
       {{ $currentYear  := "" }}
       {{ $currentMonth := "" }}
       {{ $currentDay   := "" }}
@@ -235,15 +218,11 @@
             {{ end }}
 
             <details class="sidebar-month"{{ if $monthOpen }} open{{ end }}>
-              <summary>{{ $monthKey }}</summary>
+              <summary>{{ (index .Pages 0).Date.Format "January" }}</summary>
 
-              {{/* Group by day. Within each day, skip pages whose parent
-                   also has pdf_cover (those are numbered sub-pages, not
-                   publication-level editions).                            */}}
               {{ range (.Pages.GroupByDate "January 2, 2006" "asc") }}
                 {{ $dayKey := .Key }}
 
-                {{/* Filter to publication-level only */}}
                 {{ $dayEditions := slice }}
                 {{ range .Pages }}
                   {{ if not .Parent.Params.pdf_cover }}
@@ -252,7 +231,6 @@
                 {{ end }}
 
                 {{ if $dayEditions }}
-                  {{/* Auto-open this day if visitor is inside it. */}}
                   {{ $dayOpen := eq $dayKey $currentDay }}
                   {{ if not $dayOpen }}
                     {{ range $dayEditions }}
@@ -262,10 +240,17 @@
                     {{ end }}
                   {{ end }}
 
+                  {{/* Ordinal suffix helper */}}
+                  {{- $dd := (index $dayEditions 0).Date.Day -}}
+                  {{- $ds := "th" -}}
+                  {{- if or (eq $dd 1) (eq $dd 21) (eq $dd 31) }}{{- $ds = "st" -}}{{ end -}}
+                  {{- if or (eq $dd 2) (eq $dd 22) }}{{- $ds = "nd" -}}{{ end -}}
+                  {{- if or (eq $dd 3) (eq $dd 23) }}{{- $ds = "rd" -}}{{ end -}}
+
                   {{ if gt (len $dayEditions) 1 }}
-                    {{/* Multiple papers this day — day wrapper */}}
+                    {{/* Multiple papers — show day wrapper with paper names inside */}}
                     <details class="sidebar-day"{{ if $dayOpen }} open{{ end }}>
-                      <summary>{{ (index $dayEditions 0).Date.Format "Jan 02" }}</summary>
+                      <summary>{{ $dd }}{{ $ds }}</summary>
                       {{ range $dayEditions }}
                         {{ $paperActive := eq $.RelPermalink .RelPermalink }}
                         {{ $paperOpen   := or $paperActive (.IsAncestor $.Page) }}
@@ -288,17 +273,15 @@
                     </details>
 
                   {{ else }}
-                    {{/* Single paper this day — no wrapper needed */}}
+                    {{/* Single paper — just show the ordinal, no publication name */}}
                     {{ range $dayEditions }}
                       {{ $paperActive := eq $.RelPermalink .RelPermalink }}
                       {{ $paperOpen   := or $paperActive (.IsAncestor $.Page) }}
                       <details class="sidebar-paper"{{ if $paperOpen }} open{{ end }}>
                         <summary>
                           <a href="{{ .RelPermalink }}"
-                             class="{{ if $paperActive }}active{{ end }}"
-                             title="{{ .Title }}">
-                            {{ .Date.Format "Jan 02" }}
-                            {{- with .Params.publication }} · {{ . }}{{ end }}
+                             class="{{ if $paperActive }}active{{ end }}">
+                            {{ $dd }}{{ $ds }}
                           </a>
                         </summary>
                         {{ range .Pages }}
@@ -311,14 +294,14 @@
                     {{ end }}
 
                   {{ end }}
-                {{ end }}{{/* end if $dayEditions */}}
-              {{ end }}{{/* end day range */}}
+                {{ end }}
+              {{ end }}
 
             </details>
-          {{ end }}{{/* end month range */}}
+          {{ end }}
 
         </details>
-      {{ end }}{{/* end year range */}}
+      {{ end }}
 
     </aside>
 
@@ -328,57 +311,6 @@
     </main>
 
   </div>
-
-  {{/* ── Sign-in / register modal ─────────────────────────────────────────── */}}
-  {{ if .Site.Params.show_login }}
-  <div class="modal-overlay hidden" id="auth-modal">
-    <div class="modal-box">
-      <button class="modal-close"
-              onclick="document.getElementById('auth-modal').classList.add('hidden')">✕</button>
-      <div class="modal-tabs">
-        <button class="modal-tab active" onclick="showTab('login')">Sign In</button>
-        <button class="modal-tab"        onclick="showTab('register')">Register</button>
-      </div>
-
-      <div id="tab-login">
-        <form id="login-form">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" placeholder="you@example.com" required>
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="••••••••" required>
-          </div>
-          <p class="form-error" id="login-error"></p>
-          <button type="submit" class="btn" style="width:100%">Sign In</button>
-        </form>
-        <p style="margin-top:1rem;font-size:.8rem;color:var(--text3);text-align:center">
-          All market data is free to browse without an account.
-        </p>
-      </div>
-
-      <div id="tab-register" style="display:none">
-        <form id="register-form">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" placeholder="you@example.com" required>
-          </div>
-          <div class="form-group">
-            <label>Display Name (optional)</label>
-            <input type="text" name="display_name" placeholder="Trader Joe">
-          </div>
-          <div class="form-group">
-            <label>Password (min 8 chars)</label>
-            <input type="password" name="password" placeholder="••••••••" minlength="8" required>
-          </div>
-          <p class="form-error" id="register-error"></p>
-          <button type="submit" class="btn" style="width:100%">Create Account</button>
-        </form>
-      </div>
-    </div>
-  </div>
-  {{ end }}
 
   {{/* ── Footer ───────────────────────────────────────────────────────────── */}}
   <footer class="site-footer">
@@ -399,49 +331,6 @@
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
 <script>
-
-/* ── Auth modal tab switcher ─────────────────────────────────────────────── */
-function showTab(tab) {
-  document.getElementById('tab-login').style.display    = tab === 'login'    ? '' : 'none';
-  document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
-  document.querySelectorAll('.modal-tab').forEach((el, i) =>
-    el.classList.toggle('active', (i === 0) === (tab === 'login'))
-  );
-}
-
-/* ── Sidebar stock-symbol typeahead ──────────────────────────────────────── */
-(function () {
-  const input   = document.getElementById('sidebar-ticker-search');
-  const results = document.getElementById('sidebar-ticker-results');
-  if (!input || !results) return;
-
-  let idx = [], timer;
-  fetch('/data/search_index.json').then(r => r.json()).then(d => { idx = d; }).catch(() => {});
-
-  input.addEventListener('input', e => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const q = e.target.value.trim().toUpperCase();
-      if (!q) { results.classList.add('hidden'); return; }
-      const hits = idx.filter(x => x.s.startsWith(q) || x.s.includes(q)).slice(0, 8);
-      if (!hits.length) { results.classList.add('hidden'); return; }
-      results.innerHTML = hits.map(x => `
-        <div class="search-item"
-             onclick="location.href='/stocks/${x.s.toLowerCase().replace(/\./g,'-')}'">
-          <span class="sym">${x.s}</span>
-          <span class="name">${x.sec || ''}</span>
-        </div>`).join('');
-      results.classList.remove('hidden');
-    }, 120);
-  });
-
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && input.value.trim()) {
-      location.href = `/stocks/${input.value.trim().toUpperCase().replace(/\./g, '-').toLowerCase()}`;
-    }
-    if (e.key === 'Escape') results.classList.add('hidden');
-  });
-})();
 
 /* ── Article title search (client-side, /index.json) ────────────────────── */
 (function () {

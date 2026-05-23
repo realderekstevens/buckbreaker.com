@@ -1,4 +1,13 @@
 {{ define "main" }}
 <h1 style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem">{{ .Title }}</h1>
 <div class="panel">{{ .Content }}</div>
+
+{{ if and .Site.Params.BookEditPath .File }}
+  {{ $filePath := .File.Path }}
+  {{ $editURL := printf "%s/%s/%s" .Site.Params.BookGitRepository .Site.Params.BookEditPath $filePath }}
+  <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--gray-200)">
+    <a href="{{ $editURL }}" target="_blank" rel="noopener noreferrer">✎ Edit this page</a>
+  </div>
+{{ end }}
+
 {{ end }}

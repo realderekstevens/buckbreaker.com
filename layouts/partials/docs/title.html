@@ -1,6 +1,9 @@
-<!-- 
+<!--
   Partial to generate page name from Title or File name.
-  Accepts Page as context
+  Accepts Page as context.
+  - For date sections (e.g. "19th - The New York Times"), show only the ordinal (e.g. "19th")
+  - For newspaper sections that are the only child of a date, show nothing (collapsed into date)
+  - Otherwise fall back to LinkTitle / Title
 -->
 {{ $title := "" }}
 
@@ -12,6 +15,11 @@
   {{ $title = path.Base .File.Dir | humanize | title }}
 {{ else if and .IsPage .File }}
   {{ $title = .File.BaseFileName | humanize | title }}
+{{ end }}
+
+{{/* Strip " - Publication Name" suffix from date entries like "19th - The New York Times" */}}
+{{ if strings.Contains $title " - " }}
+  {{ $title = index (split $title " - ") 0 }}
 {{ end }}
 
 {{ return $title }}
