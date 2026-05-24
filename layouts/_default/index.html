@@ -10,6 +10,9 @@
 {{ $allArticles  = where $allArticles ".Date.Year" "gt" 1 }}
 {{ $recentArts  := first 8 (sort $allArticles "Date" "desc") }}
 
+{{/* ── Featured: 1929 crash page ──────────────────────────────────────── */}}
+{{ $crash := .Site.GetPage "/1929/10/28" }}
+
 {{/* ── Hero ─────────────────────────────────────────────────────────────── */}}
 <div style="
   border-bottom: 1px solid var(--border);
@@ -60,6 +63,37 @@
     {{ end }}
   </div>
 </div>
+
+{{/* ── Featured: Black Tuesday ──────────────────────────────────────────── */}}
+{{ with $crash }}
+<a href="{{ .RelPermalink }}" style="
+  display:block;
+  margin-bottom:2rem;
+  padding:1.25rem 1.5rem;
+  border:1px solid var(--border);
+  border-left:3px solid var(--brand);
+  border-radius:var(--radius);
+  background:var(--bg-sidebar);
+  text-decoration:none;
+  color:var(--text);
+  transition:border-color .12s;
+" onmouseover="this.style.borderColor='var(--accent)';this.style.borderLeftColor='var(--brand)'"
+  onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='var(--brand)'"
+>
+  <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:.4rem;">
+    ★ Recommended Starting Point
+  </div>
+  <div style="font-family:'Georgia',serif;font-size:1.15rem;font-weight:700;margin-bottom:.3rem;">
+    Black Tuesday — October 28, 1929
+  </div>
+  <div style="font-size:.82rem;color:var(--text2);line-height:1.6;">
+    The Wall Street Crash of 1929 began in earnest on Black Monday and Tuesday, wiping out billions in market value and triggering the Great Depression. The newspapers archived here capture the day's events as they unfolded — stock tables, wire reports, and firsthand accounts from the trading floor.
+  </div>
+  <div style="margin-top:.75rem;font-size:.75rem;color:var(--accent);">
+    Browse October 28, 1929 →
+  </div>
+</a>
+{{ end }}
 
 {{/* ── Two-column grid ──────────────────────────────────────────────────── */}}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;">
@@ -155,7 +189,6 @@
       padding:.5rem .9rem;
       border:1px solid var(--border);border-radius:var(--radius);
       text-decoration:none;color:var(--text);
-      background:var(--bg2);
       transition:border-color .12s,color .12s;
     "
       onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
@@ -171,4 +204,36 @@
 </div>
 {{ end }}
 
+{{/* ── About / contribute ───────────────────────────────────────────────── */}}
+<div style="
+  margin-top:2.5rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+">
+  <div style="
+    padding:1.1rem 1.25rem;
+    border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--bg-sidebar);
+    font-size:.82rem;color:var(--text2);line-height:1.7;
+  ">
+    <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.6rem;">About</div>
+    BuckBreaker.com is a community archive of historical newspaper scans and stock market transcriptions. All data is sourced directly from original print editions. There are no ads, trackers, or cookies.
+    <div style="margin-top:.75rem;">
+      <a href="https://github.com/realderekstevens/buckbreaker.com" target="_blank" rel="noopener"
+         style="font-size:.75rem;color:var(--accent);">View on GitHub →</a>
+    </div>
+  </div>
+
+  <div style="
+    padding:1.1rem 1.25rem;
+    border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--bg-sidebar);
+    font-size:.82rem;color:var(--text2);line-height:1.7;
+  ">
+    <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.6rem;">Contribute</div>
+    Help grow the archive by transcribing articles, correcting errors, or adding new editions. Use the <strong style="color:var(--text)">✎ Edit this page</strong> link on any article to submit a correction via GitHub.
+    <div style="margin-top:.75rem;font-size:.75rem;color:var(--text3);">
+      No account needed — contributions go through GitHub pull requests.
+    </div>
+  </div>
+</div>
 {{ end }}
